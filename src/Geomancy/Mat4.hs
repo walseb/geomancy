@@ -171,6 +171,20 @@ rotateZ rads = mat4
    cost = cos rads
    sint = sin rads
 
+{-# INLINE transpose #-}
+transpose :: Mat4 -> Mat4
+transpose =
+  flip withMat4
+    \ m00 m01 m02 m03
+      m10 m11 m12 m13
+      m20 m21 m22 m23
+      m30 m31 m32 m33 ->
+    mat4
+      m00 m10 m20 m30
+      m01 m11 m21 m31
+      m02 m12 m22 m32
+      m03 m13 m23 m33
+
 foreign import ccall unsafe "M4x4_SSE" mm4sse :: Addr# -> Addr# -> Addr# -> IO ()
 
 {-# INLINE matrixProduct #-}
@@ -203,10 +217,10 @@ instance Monoid Mat4 where
 
 instance Show Mat4 where
   show = flip withMat4
-    \m00 m01 m02 m03
-     m10 m11 m12 m13
-     m20 m21 m22 m23
-     m30 m31 m32 m33 ->
+    \ m00 m01 m02 m03
+      m10 m11 m12 m13
+      m20 m21 m22 m23
+      m30 m31 m32 m33 ->
     unlines
       [ printf "| %.4f %.4f %.4f %.4f |" m00 m01 m02 m03
       , printf "| %.4f %.4f %.4f %.4f |" m10 m11 m12 m13
