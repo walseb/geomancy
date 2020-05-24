@@ -1,6 +1,17 @@
 -- | Specialized and inlined @V3 Float@.
 
-module Geomancy.Vec3 where
+module Geomancy.Vec3
+  ( Vec3
+  , vec3
+  , withVec3
+
+  , (^*)
+  , lerp
+
+  , cross
+  , dot
+  , normalize
+  ) where
 
 data Vec3 = Vec3
   {-# UNPACK #-} !Float
@@ -8,13 +19,63 @@ data Vec3 = Vec3
   {-# UNPACK #-} !Float
   deriving (Eq, Ord, Show)
 
-{-# INLINE (^-^) #-}
-(^-^) :: Vec3 -> Vec3 -> Vec3
-Vec3 a b c ^-^ Vec3 d e f =
+{-# INLINE vec3 #-}
+vec3 :: Float -> Float -> Float -> Vec3
+vec3 = Vec3
+
+{-# INLINE withVec3 #-}
+withVec3
+  :: Vec3
+  -> (Float -> Float -> Float -> r)
+  -> r
+withVec3 (Vec3 a b c) f = f a b c
+
+instance Num Vec3 where
+  {-# INLINE (+) #-}
+  Vec3 a b c + Vec3 d e f =
+    Vec3
+      (a + d)
+      (b + e)
+      (c + f)
+
+  {-# INLINE (-) #-}
+  Vec3 a b c - Vec3 d e f =
+    Vec3
+      (a - d)
+      (b - e)
+      (c - f)
+
+  {-# INLINE (*) #-}
+  Vec3 a b c * Vec3 d e f =
+    Vec3
+      (a * d)
+      (b * e)
+      (c * f)
+
+  {-# INLINE abs #-}
+  abs (Vec3 a b c) =
+    Vec3 (abs a) (abs b) (abs c)
+
+  {-# INLINE signum #-}
+  signum (Vec3 a b c) =
+    Vec3 (signum a) (signum b) (signum c)
+
+  {-# INLINE fromInteger #-}
+  fromInteger x = Vec3 x' x' x'
+    where
+      x' = fromInteger x
+
+{-# INLINE (^*) #-}
+(^*) :: Vec3 -> Float -> Vec3
+Vec3 a b c ^* x =
   Vec3
-    (a - d)
-    (b - e)
-    (c - f)
+    (a * x)
+    (b * x)
+    (c * x)
+
+{-# INLINE lerp #-}
+lerp :: Float -> Vec3 -> Vec3 -> Vec3
+lerp alpha u v = u ^* alpha + v ^* (1 - alpha)
 
 {-# INLINE cross #-}
 cross :: Vec3 -> Vec3 -> Vec3

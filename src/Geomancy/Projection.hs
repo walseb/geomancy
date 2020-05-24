@@ -1,3 +1,5 @@
+{-# LANGUAGE BlockArguments #-}
+
 module Geomancy.Projection
   ( lookAtRH
   , perspectiveRH
@@ -5,21 +7,24 @@ module Geomancy.Projection
   ) where
 
 import Geomancy.Mat4 (Mat4, mat4)
-import Geomancy.Vec3 (Vec3(..))
+import Geomancy.Vec3 (Vec3, withVec3)
 
 import qualified Geomancy.Vec3 as Vec3
 
 lookAtRH :: Vec3 -> Vec3 -> Vec3 -> Mat4
 lookAtRH eye center up =
+  withVec3 xa \xaX xaY xaZ ->
+  withVec3 ya \yaX yaY yaZ ->
+  withVec3 za \zaX zaY zaZ ->
   mat4
     xaX yaX (-zaX) 0
     xaY yaY (-zaY) 0
     xaZ yaZ (-zaZ) 0
     xd  yd    zd   1
   where
-    xa@(Vec3 xaX xaY xaZ) = Vec3.normalize $ Vec3.cross za up
-    ya@(Vec3 yaX yaY yaZ) = Vec3.cross xa za
-    za@(Vec3 zaX zaY zaZ) = Vec3.normalize $ center Vec3.^-^ eye
+    xa = Vec3.normalize $ Vec3.cross za up
+    ya = Vec3.cross xa za
+    za = Vec3.normalize $ center - eye
 
     xd = - Vec3.dot xa eye
     yd = - Vec3.dot ya eye
@@ -66,6 +71,3 @@ orthoOffCenterRH near far width height = mat4
     t22 = 1 / (near - far)
 
     t32 = near / (near - far)
-
-    near = 0.001
-    far = -1
