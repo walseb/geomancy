@@ -1,3 +1,5 @@
+{-# LANGUAGE BlockArguments #-}
+
 -- | Specialized and inlined @V3 Float@.
 
 module Geomancy.Vec3
@@ -12,6 +14,8 @@ module Geomancy.Vec3
   , dot
   , normalize
   ) where
+
+import Foreign (Storable(..), castPtr)
 
 data Vec3 = Vec3
   {-# UNPACK #-} !Float
@@ -108,3 +112,26 @@ normalize v =
     l = sqrt q
 
     nearZero a = abs a <= 1e-6
+
+-- XXX: GPU layouts call for some padding.
+instance Storable Vec3 where
+  {-# INLINE sizeOf #-}
+  sizeOf _ = 16
+
+  {-# INLINE alignment #-}
+  alignment _ = 16
+
+  {-# INLINE poke #-}
+  poke ptr v3 =
+    withVec3 v3 \a b c -> do
+      poke ptr' a
+      pokeElemOff ptr' 1 b
+      pokeElemOff ptr' 2 c
+    where
+      ptr' = castPtr ptr
+
+  {-# INLINE peek #-}
+  peek ptr =
+    vec3 <$> peek ptr' <*> peekElemOff ptr' 1 <*> peekElemOff ptr' 2
+    where
+      ptr' = castPtr ptr
