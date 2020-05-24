@@ -14,6 +14,7 @@ module Geomancy.Mat4
   , rotateX
   , rotateY
   , rotateZ
+  , transpose
   ) where
 
 import Prelude
