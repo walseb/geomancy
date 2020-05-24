@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5a9bb44bb76af6f2d2cafc19bcc9002a3ff06d1d4079c083fc51ccc2904aaaf4
+-- hash: f28c18193aedc81af213cf433bcc66fdd025146365c0099e79fc552dbb5891fb
 
 name:           geomancy
-version:        0.1.0.0
+version:        0.1.1.0
 synopsis:       Geometry and matrix manipulation
 description:    Sometimes it is unavoidable you have to do stuff on CPU.
                 Let's at least do it faster.
