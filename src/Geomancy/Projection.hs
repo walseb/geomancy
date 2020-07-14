@@ -52,11 +52,7 @@ perspectiveRH fovDegs near far width height = mat4
 
     f = recip . tan $ 0.5 * fovDegs / 180 * pi
 
-    aspectX =
-      if width > height then
-        fromIntegral height / fromIntegral width
-      else
-        1.0
+    aspectX = fromIntegral height / fromIntegral width
 
 orthoOffCenterRH :: Integral side => Float -> Float -> side -> side -> Mat4
 orthoOffCenterRH near far width height = mat4
