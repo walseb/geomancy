@@ -9,6 +9,7 @@ module Geomancy.Quaternion
 
   , axisAngle
   , rotate
+  , rotatePoint
 
   , conjugate
   , norm
@@ -56,6 +57,11 @@ rotate q v = withQuaternion q' \_a b c d -> vec3 b c d
   where
     q' = withVec3 v \x y z ->
       q * quaternion 0 x y z * conjugate q
+
+{-# INLINE rotatePoint #-}
+rotatePoint :: Quaternion -> Vec3 -> Vec3 -> Vec3
+rotatePoint q origin point =
+  origin + rotate q (point - origin)
 
 {-# INLINE conjugate #-}
 conjugate :: Quaternion -> Quaternion
