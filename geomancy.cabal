@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 54690a817e49b595eedd0d7e38ffbaa49612f9bfe62e2219f67f6703f8f302b9
+-- hash: b626169d01b9084f50fbe44f23115bafc882e8cf016b39dfa52f8a04d617125a
 
 name:           geomancy
-version:        0.1.1.0
+version:        0.1.1.1
 synopsis:       Geometry and matrix manipulation
 description:    Sometimes it is unavoidable you have to do stuff on CPU.
                 Let's at least do it faster.
@@ -33,6 +33,7 @@ library
       Geomancy.Projection
       Geomancy.Quaternion
       Geomancy.Vec3
+      Geomancy.Vec4
   other-modules:
       Paths_geomancy
   hs-source-dirs:
