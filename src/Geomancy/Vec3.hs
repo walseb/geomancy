@@ -8,6 +8,7 @@ module Geomancy.Vec3
   , withVec3
 
   , (^*)
+  , (^/)
   , lerp
 
   , cross
@@ -76,6 +77,14 @@ Vec3 a b c ^* x =
     (a * x)
     (b * x)
     (c * x)
+
+{-# INLINE (^/) #-}
+(^/) :: Vec3 -> Float -> Vec3
+Vec3 a b c ^/ x =
+  Vec3
+    (a / x)
+    (b / x)
+    (c / x)
 
 {-# INLINE lerp #-}
 lerp :: Float -> Vec3 -> Vec3 -> Vec3

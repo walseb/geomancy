@@ -8,6 +8,7 @@ module Geomancy.Vec4
   , withVec4
 
   , (^*)
+  , (^/)
   , lerp
 
   , dot
@@ -80,6 +81,15 @@ Vec4 a b c d ^* x =
     (b * x)
     (c * x)
     (d * x)
+
+{-# INLINE (^/) #-}
+(^/) :: Vec4 -> Float -> Vec4
+Vec4 a b c d ^/ x =
+  Vec4
+    (a / x)
+    (b / x)
+    (c / x)
+    (d / x)
 
 {-# INLINE lerp #-}
 lerp :: Float -> Vec4 -> Vec4 -> Vec4
