@@ -20,6 +20,7 @@ description: |
 
 dependencies:
 - base >= 4.7 && < 5
+- deepseq
 
 library:
   c-sources: cbits/mat4.c

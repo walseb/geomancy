@@ -23,6 +23,7 @@ module Geomancy.Quaternion
   , qNaN
   ) where
 
+import Control.DeepSeq (NFData(rnf))
 import Foreign (Storable(..), castPtr)
 
 import Geomancy.Vec3 (Vec3, vec3, withVec3)
@@ -140,6 +141,9 @@ normalize v =
     l = sqrt q
 
     nearZero a = abs a <= 1e-6
+
+instance NFData Quaternion where
+  rnf Quaternion{} = ()
 
 instance Num Quaternion where
   {-# INLINE (+) #-}

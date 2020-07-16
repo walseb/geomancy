@@ -21,6 +21,7 @@ module Geomancy.Mat4
 import Prelude
 import GHC.Exts
 
+import Control.DeepSeq (NFData(rnf))
 import Foreign (Storable(..))
 import GHC.IO (IO(..))
 import System.IO.Unsafe (unsafePerformIO)
@@ -233,6 +234,9 @@ unsafeNewMat4 =
       !(# _world', arr #) = unsafeFreezeByteArray# arr_ world_
     in
       (# world, Mat4 arr #)
+
+instance NFData Mat4 where
+  rnf Mat4{} = ()
 
 instance Semigroup Mat4 where
   {-# INLINE (<>) #-}

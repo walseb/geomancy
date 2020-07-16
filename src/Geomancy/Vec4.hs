@@ -15,6 +15,7 @@ module Geomancy.Vec4
   , normalize
   ) where
 
+import Control.DeepSeq (NFData(rnf))
 import Foreign (Storable(..), castPtr)
 
 data Vec4 = Vec4
@@ -34,6 +35,9 @@ withVec4
   -> (Float -> Float -> Float -> Float -> r)
   -> r
 withVec4 (Vec4 a b c d) f = f a b c d
+
+instance NFData Vec4 where
+  rnf Vec4{} = ()
 
 instance Num Vec4 where
   {-# INLINE (+) #-}
