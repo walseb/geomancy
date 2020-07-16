@@ -11,6 +11,10 @@ module Geomancy.Quaternion
   , rotate
   , rotatePoint
 
+  , (^*)
+  , (^/)
+  , slerp
+
   , conjugate
   , norm
   , quadrance
@@ -62,6 +66,43 @@ rotate q v = withQuaternion q' \_a b c d -> vec3 b c d
 rotatePoint :: Quaternion -> Vec3 -> Vec3 -> Vec3
 rotatePoint q origin point =
   origin + rotate q (point - origin)
+
+{-# INLINE (^*) #-}
+(^*) :: Quaternion -> Float -> Quaternion
+Quaternion a b c d ^* x =
+  Quaternion
+    (a * x)
+    (b * x)
+    (c * x)
+    (d * x)
+
+{-# INLINE (^/) #-}
+(^/) :: Quaternion -> Float -> Quaternion
+Quaternion a b c d ^/ x =
+  Quaternion
+    (a / x)
+    (b / x)
+    (c / x)
+    (d / x)
+
+slerp :: Quaternion -> Quaternion -> Float -> Quaternion
+slerp q p t
+  | 1.0 - cosphi < 1e-8 =
+      q
+  | otherwise =
+      ( (q   ^* sin ((1 - t) * phi)) +
+         f p ^* sin (t * phi)
+      ) ^/ sin phi
+  where
+    phi = acos cosphi
+
+    (cosphi, f) =
+      if dqp < 0 then
+        (-dqp, negate)
+      else
+        (dqp, id)
+
+    dqp = dot q p
 
 {-# INLINE conjugate #-}
 conjugate :: Quaternion -> Quaternion
