@@ -15,6 +15,7 @@ module Geomancy.Mat4
   , rotateY
   , rotateZ
   , transpose
+  , mkTransformation
   ) where
 
 import Prelude
@@ -24,6 +25,9 @@ import Foreign (Storable(..))
 import GHC.IO (IO(..))
 import System.IO.Unsafe (unsafePerformIO)
 import Text.Printf (printf)
+
+import Geomancy.Quaternion (Quaternion, withQuaternion)
+import Geomancy.Vec3 (Vec3, withVec3)
 
 data Mat4 = Mat4 ByteArray#
 
@@ -185,6 +189,28 @@ transpose =
       m01 m11 m21 m31
       m02 m12 m22 m32
       m03 m13 m23 m33
+
+{-# INLINE mkTransformation #-}
+mkTransformation :: Quaternion -> Vec3 -> Mat4
+mkTransformation rs t =
+  withQuaternion rs \w x y z ->
+  withVec3 t \tx ty tz ->
+    let
+      x2 = x * x
+      y2 = y * y
+      z2 = z * z
+      xy = x * y
+      xz = x * z
+      xw = x * w
+      yz = y * z
+      yw = y * w
+      zw = z * w
+    in
+      mat4
+        (1 - 2 * (y2 + z2)) (    2 * (xy + zw))     (2 * (xz - yw)) 0
+        (    2 * (xy - zw)) (1 - 2 * (x2 + z2))     (2 * (yz + xw)) 0
+        (    2 * (xz + yw))     (2 * (yz - xw)) (1 - 2 * (x2 + y2)) 0
+                       tx                  ty                  tz   1
 
 foreign import ccall unsafe "M4x4_SSE" mm4sse :: Addr# -> Addr# -> Addr# -> IO ()
 
