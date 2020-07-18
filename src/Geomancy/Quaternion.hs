@@ -10,6 +10,8 @@ module Geomancy.Quaternion
   , axisAngle
   , rotate
   , rotatePoint
+  , rotationBetween
+  , lookAtUp
 
   , (^*)
   , (^/)
@@ -47,26 +49,6 @@ withQuaternion
   -> (Float -> Float -> Float -> Float -> r)
   -> r
 withQuaternion (Quaternion a b c d) f = f a b c d
-
-{-# INLINE axisAngle #-}
-axisAngle :: Vec3 -> Float -> Quaternion
-axisAngle axis rads =
-  withVec3 (Vec3.normalize axis Vec3.^* sin half) $
-    quaternion (cos half)
-  where
-    half = rads / 2
-
-{-# INLINE rotate #-}
-rotate :: Quaternion -> Vec3 -> Vec3
-rotate q v = withQuaternion q' \_a b c d -> vec3 b c d
-  where
-    q' = withVec3 v \x y z ->
-      q * quaternion 0 x y z * conjugate q
-
-{-# INLINE rotatePoint #-}
-rotatePoint :: Quaternion -> Vec3 -> Vec3 -> Vec3
-rotatePoint q origin point =
-  origin + rotate q (point - origin)
 
 {-# INLINE (^*) #-}
 (^*) :: Quaternion -> Float -> Quaternion
@@ -230,3 +212,68 @@ instance Storable Quaternion where
     <*> peekElemOff ptr' 3
     where
       ptr' = castPtr ptr
+
+-- | Quaternion construction from axis and angle.
+{-# INLINE axisAngle #-}
+axisAngle :: Vec3 -> Float -> Quaternion
+axisAngle axis rads =
+  withVec3 (Vec3.normalize axis Vec3.^* sin half) $
+    quaternion (cos half)
+  where
+    half = rads / 2
+
+{-# INLINE rotate #-}
+rotate :: Quaternion -> Vec3 -> Vec3
+rotate q v = withQuaternion q' \_a b c d -> vec3 b c d
+  where
+    q' = withVec3 v \x y z ->
+      q * quaternion 0 x y z * conjugate q
+
+{-# INLINE rotatePoint #-}
+rotatePoint :: Quaternion -> Vec3 -> Vec3 -> Vec3
+rotatePoint q origin point =
+  origin + rotate q (point - origin)
+
+{- | Rotation between vectors.
+
+(in other words: the quaternion needed to rotate @v1@ so that it matches @v2@)
+-}
+rotationBetween :: Vec3 -> Vec3 -> Quaternion
+rotationBetween v1 v2 =
+  if cosTheta < -1 + 0.01 then
+    let
+      rotationAxis1 = Vec3.cross (vec3 0 0 1) start
+      rotationAxis2 = Vec3.cross (vec3 0 0 1) start
+      rotationAxis =
+        if Vec3.dot rotationAxis1 rotationAxis1 < 0.01 then
+          rotationAxis2
+        else
+          rotationAxis1
+    in
+      axisAngle rotationAxis pi
+  else
+    withVec3 invAxis $ quaternion (s * 0.5)
+  where
+    start    = Vec3.normalize v1
+    dest     = Vec3.normalize v2
+    cosTheta = Vec3.dot start dest
+
+    invAxis = Vec3.cross start dest Vec3.^/ s
+
+    s = sqrt (2 + cosTheta * 2)
+
+{- | Orient towards a point.
+
+Use "rotationBetween" if you don't need to keep the object upright.
+-}
+lookAtUp :: Vec3 -> Vec3 -> Vec3 -> Quaternion
+lookAtUp src dst up = rot2 * rot1
+  where
+    rot1 = rotationBetween (vec3 0 0 1) direction
+    rot2 = rotationBetween newUp desiredUp
+
+    direction = dst - src
+    newUp = rotate rot1 (vec3 0 (-1) 0)
+
+    desiredUp = Vec3.cross right direction
+    right = Vec3.cross direction up
