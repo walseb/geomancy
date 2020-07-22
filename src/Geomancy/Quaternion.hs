@@ -239,28 +239,13 @@ rotatePoint q origin point =
 (in other words: the quaternion needed to rotate @v1@ so that it matches @v2@)
 -}
 rotationBetween :: Vec3 -> Vec3 -> Quaternion
-rotationBetween v1 v2 =
-  if cosTheta < -1 + 0.01 then
-    let
-      rotationAxis1 = Vec3.cross (vec3 0 0 1) start
-      rotationAxis2 = Vec3.cross (vec3 0 0 1) start
-      rotationAxis =
-        if Vec3.dot rotationAxis1 rotationAxis1 < 0.01 then
-          rotationAxis2
-        else
-          rotationAxis1
-    in
-      axisAngle rotationAxis pi
-  else
-    withVec3 invAxis $ quaternion (s * 0.5)
+rotationBetween v1 v2 = axisAngle axis angle
   where
-    start    = Vec3.normalize v1
-    dest     = Vec3.normalize v2
-    cosTheta = Vec3.dot start dest
-
-    invAxis = Vec3.cross start dest Vec3.^/ s
-
-    s = sqrt (2 + cosTheta * 2)
+    axis = Vec3.cross v1 v2
+    angle = acos cosAngle
+    cosAngle =
+      max (-1) . min 1 $
+        Vec3.dot (Vec3.normalize v1) (Vec3.normalize v2)
 
 {- | Orient towards a point.
 
@@ -269,11 +254,12 @@ Use "rotationBetween" if you don't need to keep the object upright.
 lookAtUp :: Vec3 -> Vec3 -> Vec3 -> Quaternion
 lookAtUp src dst up = rot2 * rot1
   where
-    rot1 = rotationBetween (vec3 0 0 1) direction
-    rot2 = rotationBetween newUp desiredUp
+    dir3 = dst - src
 
-    direction = dst - src
-    newUp = rotate rot1 (vec3 0 (-1) 0)
+    -- XXX: turn "eye"
+    rot1 = rotationBetween (vec3 0 0 1) dir3
 
-    desiredUp = Vec3.cross right direction
-    right = Vec3.cross direction up
+    rot2 = rotationBetween newUp fixedUp
+
+    newUp = rotate rot1 up
+    fixedUp = Vec3.cross (Vec3.cross dir3 up) dir3
