@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3276e03af6be591787b95a0acd16967d9a203f6e24eb63c3ecc5aec81da009e8
+-- hash: f75dacee3dc9b35c2876387ccacc08232c43b00a3657983f64104a2ac694edd7
 
 name:           geomancy
 version:        0.1.1.2
@@ -30,10 +30,11 @@ library
   exposed-modules:
       Geomancy
       Geomancy.Mat4
-      Geomancy.Projection
       Geomancy.Quaternion
       Geomancy.Vec3
       Geomancy.Vec4
+      Geomancy.Vulkan.Projection
+      Geomancy.Vulkan.View
   other-modules:
       Paths_geomancy
   hs-source-dirs:
