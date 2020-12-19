@@ -16,6 +16,9 @@ module Geomancy.Mat4
   , rotateZ
   , transpose
   , mkTransformation
+  , elementwise
+  , colMajor
+  , rowMajor
   ) where
 
 import Prelude
@@ -212,6 +215,48 @@ mkTransformation rs t =
         (    2 * (xy - zw)) (1 - 2 * (x2 + z2))     (2 * (yz + xw)) 0
         (    2 * (xz + yw))     (2 * (yz - xw)) (1 - 2 * (x2 + y2)) 0
                        tx                  ty                  tz   1
+
+elementwise :: Mat4 -> Mat4 -> (Float -> Float -> Float) ->Mat4
+elementwise a b f =
+  withMat4 a
+    \ a00 a01 a02 a03
+      a10 a11 a12 a13
+      a20 a21 a22 a23
+      a30 a31 a32 a33 ->
+  withMat4 b
+    \ b00 b01 b02 b03
+      b10 b11 b12 b13
+      b20 b21 b22 b23
+      b30 b31 b32 b33 ->
+  mat4
+    (f a00 b00) (f a01 b01) (f a02 b02) (f a03 b03)
+    (f a10 b10) (f a11 b11) (f a12 b12) (f a13 b13)
+    (f a20 b20) (f a21 b21) (f a22 b22) (f a23 b23)
+    (f a30 b30) (f a31 b31) (f a32 b32) (f a33 b33)
+
+rowMajor :: Mat4 -> [Float]
+rowMajor = flip withMat4
+    \ a00 a01 a02 a03
+      a10 a11 a12 a13
+      a20 a21 a22 a23
+      a30 a31 a32 a33 ->
+    [ a00, a01, a02, a03
+    , a10, a11, a12, a13
+    , a20, a21, a22, a23
+    , a30, a31, a32, a33
+    ]
+
+colMajor :: Mat4 -> [Float]
+colMajor = flip withMat4
+    \ a00 a01 a02 a03
+      a10 a11 a12 a13
+      a20 a21 a22 a23
+      a30 a31 a32 a33 ->
+    [ a00, a10, a20, a30
+    , a01, a11, a21, a31
+    , a02, a12, a22, a32
+    , a03, a13, a23, a33
+    ]
 
 foreign import ccall unsafe "M4x4_SSE" mm4sse :: Addr# -> Addr# -> Addr# -> IO ()
 

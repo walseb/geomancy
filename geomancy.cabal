@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f75dacee3dc9b35c2876387ccacc08232c43b00a3657983f64104a2ac694edd7
+-- hash: 6508dd6048701963d6057194d5276b09ea79cf732bdfeddb345b4a0f1d892967
 
 name:           geomancy
-version:        0.1.1.2
+version:        0.1.2.1
 synopsis:       Geometry and matrix manipulation
 description:    Sometimes it is unavoidable you have to do stuff on CPU.
                 Let's at least do it faster.
@@ -58,4 +58,6 @@ test-suite geomancy-test
       base >=4.7 && <5
     , deepseq
     , geomancy
+    , hedgehog
+    , linear
   default-language: Haskell2010

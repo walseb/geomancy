@@ -2,6 +2,11 @@
 
 ## Unreleased changes
 
+## 0.1.2.1
+
++ Add Mat4 multiplication test via `linear`
++ Add `elementwise`, `colMajor`, `rowMajor`
+
 ## 0.1.2.0
 
 * Move projections and views to Vulkan namespace.
