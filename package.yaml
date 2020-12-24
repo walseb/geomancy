@@ -22,18 +22,24 @@ dependencies:
 - base >= 4.7 && < 5
 - deepseq
 
+ghc-options:
+- -Wall
+
 library:
   c-sources: cbits/mat4.c
   source-dirs: src
 
 tests:
   geomancy-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main: Spec.hs
+    source-dirs: test
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -with-rtsopts=-qn1
+    - -with-rtsopts=-A128m
+    # - -with-rtsopts=-s
     dependencies:
     - geomancy
     - linear
