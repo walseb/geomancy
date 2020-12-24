@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 73d2275376f664d51ea1c7e82ce84f3b5de23cc842e0f6d86c5a33afbc286283
+-- hash: a3a20d9d24bce2832e52b179e3180fececbc8119fb75beb87c0a6950c04a7686
 
 name:           geomancy
 version:        0.1.3.0
@@ -60,5 +60,21 @@ test-suite geomancy-test
     , deepseq
     , geomancy
     , hedgehog
+    , linear
+  default-language: Haskell2010
+
+benchmark geomancy-bench
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_geomancy
+  hs-source-dirs:
+      bench
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-qn1 -with-rtsopts=-A16m
+  build-depends:
+      base >=4.7 && <5
+    , criterion
+    , deepseq
+    , geomancy
     , linear
   default-language: Haskell2010
