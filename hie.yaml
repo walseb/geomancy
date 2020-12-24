@@ -1,0 +1,10 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "geomancy:lib"
+
+    - path: "./test"
+      component: "geomancy:test:geomancy-test"
+
+    - path: "./bench"
+      component: "geomancy:bench:geomancy-bench"
