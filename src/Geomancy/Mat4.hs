@@ -16,19 +16,22 @@ module Geomancy.Mat4
   , rotateZ
   , transpose
   , mkTransformation
-  , elementwise
-  , colMajor
-  , rowMajor
+  , pointwise
+  , zipWith
+  , toList
+  , toListTrans
   ) where
 
-import Prelude
-import GHC.Exts
+import Prelude hiding (zipWith)
+import GHC.Exts hiding (toList)
 
 import Control.DeepSeq (NFData(rnf))
 import Foreign (Storable(..))
 import GHC.IO (IO(..))
 import System.IO.Unsafe (unsafePerformIO)
 import Text.Printf (printf)
+
+import qualified Data.List as List
 
 import Geomancy.Quaternion (Quaternion, withQuaternion)
 import Geomancy.Vec3 (Vec3, withVec3)
@@ -216,8 +219,8 @@ mkTransformation rs t =
         (    2 * (xz + yw))     (2 * (yz - xw)) (1 - 2 * (x2 + y2)) 0
                        tx                  ty                  tz   1
 
-elementwise :: Mat4 -> Mat4 -> (Float -> Float -> Float) ->Mat4
-elementwise a b f =
+pointwise :: Mat4 -> Mat4 -> (Float -> Float -> Float) -> Mat4
+pointwise a b f =
   withMat4 a
     \ a00 a01 a02 a03
       a10 a11 a12 a13
@@ -234,8 +237,8 @@ elementwise a b f =
     (f a20 b20) (f a21 b21) (f a22 b22) (f a23 b23)
     (f a30 b30) (f a31 b31) (f a32 b32) (f a33 b33)
 
-rowMajor :: Mat4 -> [Float]
-rowMajor = flip withMat4
+toList :: Mat4 -> [Float]
+toList = flip withMat4
     \ a00 a01 a02 a03
       a10 a11 a12 a13
       a20 a21 a22 a23
@@ -246,8 +249,8 @@ rowMajor = flip withMat4
     , a30, a31, a32, a33
     ]
 
-colMajor :: Mat4 -> [Float]
-colMajor = flip withMat4
+toListTrans :: Mat4 -> [Float]
+toListTrans = flip withMat4
     \ a00 a01 a02 a03
       a10 a11 a12 a13
       a20 a21 a22 a23
@@ -257,6 +260,9 @@ colMajor = flip withMat4
     , a02, a12, a22, a32
     , a03, a13, a23, a33
     ]
+
+zipWith :: (Float -> Float -> c) -> Mat4 -> Mat4 -> [c]
+zipWith f a b = List.zipWith f (toList a) (toList b)
 
 foreign import ccall unsafe "M4x4_SSE" mm4sse :: Addr# -> Addr# -> Addr# -> IO ()
 

@@ -2,6 +2,14 @@
 
 ## Unreleased changes
 
+## 0.1.3.0
+
+* Update tests
++ Add `zipWith`
+* Rename `elementwise` to `pointwise`
+* Rename `colMajor` to `toList`
+* Rename `rowMajor` to `toListTrans`
+
 ## 0.1.2.1
 
 + Add Mat4 multiplication test via `linear`
