@@ -15,10 +15,13 @@ import GHC.Stack (withFrozenCallStack)
 import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
 
+import Geomancy.Transform (Transform(..))
+
 import qualified Foreign
 import qualified Linear
 import qualified Geomancy
 import qualified Geomancy.Mat4
+import qualified Geomancy.Transform as Transform
 
 import Linear ((!*!))
 
@@ -70,11 +73,11 @@ prop_assoc_multiply = withTests PROP_TESTS $ property do
 
 forAllTransform :: PropertyT IO (Geomancy.Mat4.Mat4, Linear.M44 Float)
 forAllTransform = withFrozenCallStack do
-  (_name, g) <- forAllWith fst genTransform
+  (_name, Transform g) <- forAllWith fst genTransform
   l <- toM44 g
   pure (g, l)
 
-genTransform :: Gen ([Char], Geomancy.Mat4)
+genTransform :: Gen ([Char], Transform)
 genTransform = Gen.choice
   [ genIdentity
   , genTranslate
@@ -90,14 +93,14 @@ genTransform = Gen.choice
       z <- Gen.float (Range.linearFracFrom 0.0 (-1e6) 1e6)
       pure
         ( printf "translate %0.4f %0.4f %0.4f" x y z
-        , Geomancy.Mat4.translate x y z
+        , Transform.translate x y z
         )
 
     genRotate = do
       (name, axis) <- Gen.element
-        [ ("rotate/x", Geomancy.Mat4.rotateX)
-        , ("rotate/y", Geomancy.Mat4.rotateY)
-        , ("rotate/z", Geomancy.Mat4.rotateZ)
+        [ ("rotate/x", Transform.rotateX)
+        , ("rotate/y", Transform.rotateY)
+        , ("rotate/z", Transform.rotateZ)
         ]
       angle <- Gen.float (Range.linearFracFrom 0.0 (-4 * pi) (4 * pi))
       pure
@@ -111,7 +114,7 @@ genTransform = Gen.choice
       z <- Gen.float (Range.linearFracFrom 1.0 1e-6 1e6)
       pure
         ( printf "scale %0.4f %0.4f %0.4f" x y z
-        , Geomancy.Mat4.scale x y z
+        , Transform.scale3 x y z
         )
 
 -- toVulkan :: Linear.M44 Float -> Linear.M44 Float

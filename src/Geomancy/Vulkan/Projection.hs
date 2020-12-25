@@ -3,7 +3,7 @@ module Geomancy.Vulkan.Projection
   , orthoOffCenter
   ) where
 
-import Geomancy.Mat4 (Mat4, mat4)
+import Geomancy.Mat4 (Mat4, rowMajor)
 
 perspective
   :: Integral side
@@ -11,7 +11,7 @@ perspective
   -> Float -> Float
   -> side -> side
   -> Mat4
-perspective fovDegs near far width height = mat4
+perspective fovDegs near far width height = rowMajor
   t00 0   0   0
   0   t11 0   0
   0   0   t22 t23
@@ -29,7 +29,7 @@ perspective fovDegs near far width height = mat4
     aspectX = fromIntegral height / fromIntegral width
 
 orthoOffCenter :: Integral side => Float -> Float -> side -> side -> Mat4
-orthoOffCenter near far width height = mat4
+orthoOffCenter near far width height = rowMajor
   t00 0   0   0
   0   t11 0   0
   0   0   t22 0
@@ -38,6 +38,6 @@ orthoOffCenter near far width height = mat4
   where
     t00 = 2 / fromIntegral width
     t11 = 2 / fromIntegral height
-    t22 = 1 / negate (near - far)
+    t22 = 1 / (far - near)
 
-    t32 = near / t22
+    t32 = near * (near - far)

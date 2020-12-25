@@ -2,6 +2,25 @@
 
 ## Unreleased changes
 
+## 0.2.0.0
+
+Mat4 rewrite
+
++ Add `rowMajor`, `withRowMajor`, `toListRowMajor`.
++ Add `colMajor`, `withColMajor`, `toListColMajor`.
++ Add `Mat4.inverse`.
+* Expose `matrixProduct`.
++ Add `scalarMultiply`.
++ Add `Mat4.(!*)` to use with `Vec4`.
+* Extract transformations to `Geomancy.Transform` and use column notation.
++ Add `Transform.(!.)` and `apply` to use with `Vec3`.
+* Rename `scale` to `scale3`.
++ Add uniform `scale`.
++ Add `scaleXY` for flat meshes.
+* Rename `mkTransformation` to `dirPos`.
++ Add `rotateQ` via `dirPos` with empty translation.
++ Add `Vec3.Packed` newtype without extra padding.
+
 ## 0.1.3.0
 
 * Update tests

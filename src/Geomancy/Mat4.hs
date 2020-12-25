@@ -1,25 +1,38 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UnliftedFFITypes #-}
+
+{- | General matrix storage and operations.
+
+For GLSL-compatible transformations see "Geomancy.Transform.ColMajor".
+-}
 
 module Geomancy.Mat4
   ( Mat4
   , mat4
   , withMat4
+
+  , rowMajor
+  , withRowMajor
+  , toListRowMajor
+
+  , colMajor
+  , withColMajor
+  , toListColMajor
+
   , identity
-  , translate
-  , scale
-  , rotateX
-  , rotateY
-  , rotateZ
   , transpose
-  , mkTransformation
+  , inverse
   , pointwise
   , zipWith
   , toList
   , toListTrans
+  , matrixProduct
+  , scalarMultiply
+  , (!*)
   ) where
 
 import Prelude hiding (zipWith)
@@ -33,11 +46,90 @@ import Text.Printf (printf)
 
 import qualified Data.List as List
 
-import Geomancy.Quaternion (Quaternion, withQuaternion)
-import Geomancy.Vec3 (Vec3, withVec3)
+import Geomancy.Vec4 (Vec4, vec4, withVec4)
 
 data Mat4 = Mat4 ByteArray#
 
+{- | Construct 'Mat4' from @row@ notation.
+-}
+rowMajor
+  :: Coercible Mat4 a
+  => Float -> Float -> Float -> Float
+  -> Float -> Float -> Float -> Float
+  -> Float -> Float -> Float -> Float
+  -> Float -> Float -> Float -> Float
+  -> a
+rowMajor = coerce mat4
+
+{- | Reduce 'Mat4' with a function with @row@ notation of arguments.
+-}
+withRowMajor
+  :: Coercible a Mat4
+  => a
+  ->
+    ( Float -> Float -> Float -> Float ->
+      Float -> Float -> Float -> Float ->
+      Float -> Float -> Float -> Float ->
+      Float -> Float -> Float -> Float ->
+      r
+    )
+  -> r
+withRowMajor m = withMat4 (coerce m)
+
+toListRowMajor :: Coercible a Mat4 => a -> [Float]
+toListRowMajor = toList . coerce
+
+{- | Construct a 'Mat4' from @column@ notation.
+-}
+{-# INLINE colMajor #-}
+colMajor
+  :: Coercible Mat4 a
+  => Float -> Float -> Float -> Float
+  -> Float -> Float -> Float -> Float
+  -> Float -> Float -> Float -> Float
+  -> Float -> Float -> Float -> Float
+  -> a
+colMajor
+  m00 m01 m02 m03
+  m10 m11 m12 m13
+  m20 m21 m22 m23
+  m30 m31 m32 m33 =
+    coerce $ mat4
+      m00 m10 m20 m30
+      m01 m11 m21 m31
+      m02 m12 m22 m32
+      m03 m13 m23 m33
+
+{- | Reduce 'Mat4' with a function with @column@ notation for arguments.
+-}
+{-# INLINE withColMajor #-}
+withColMajor
+  :: Coercible a Mat4
+  => a
+  ->
+    ( Float -> Float -> Float -> Float ->
+      Float -> Float -> Float -> Float ->
+      Float -> Float -> Float -> Float ->
+      Float -> Float -> Float -> Float ->
+      r
+    )
+  -> r
+withColMajor m f = withMat4 (coerce m)
+  \ m00 m01 m02 m03
+    m10 m11 m12 m13
+    m20 m21 m22 m23
+    m30 m31 m32 m33 ->
+  f
+    m00 m10 m20 m30
+    m01 m11 m21 m31
+    m02 m12 m22 m32
+    m03 m13 m23 m33
+
+toListColMajor :: Coercible a Mat4 => a -> [Float]
+toListColMajor = toListTrans . coerce
+
+{- | Construct 'Mat4' from elements in memory order.
+-}
 {-# INLINE mat4 #-}
 mat4
   :: Float -> Float -> Float -> Float
@@ -78,6 +170,8 @@ mat4
     in
       Mat4 arr'
 
+{- | Reduce 'Mat4' with a function with @memory@ notation for arguments.
+-}
 {-# INLINE withMat4 #-}
 withMat4
   :: Mat4
@@ -111,6 +205,10 @@ withMat4 (Mat4 arr) f =
     (F# (indexFloatArray# arr 0xE#))
     (F# (indexFloatArray# arr 0xF#))
 
+{- | @I@, the identity matrix.
+
+Neutral element of its monoid, so you can use 'mempty'.
+-}
 {-# INLINE identity #-}
 identity :: Mat4
 identity = mat4
@@ -118,70 +216,6 @@ identity = mat4
   0 1 0 0
   0 0 1 0
   0 0 0 1
-
-{-# INLINE translate #-}
-translate :: Float -> Float -> Float -> Mat4
-translate x y z = mat4
-  1 0 0 0
-  0 1 0 0
-  0 0 1 0
-  x y z 1
-
-{-# INLINE scale #-}
-scale :: Float -> Float -> Float -> Mat4
-scale x y z = mat4
-  x 0 0 0
-  0 y 0 0
-  0 0 z 0
-  0 0 0 1
-
-{-# INLINE rotateX #-}
-rotateX :: Float -> Mat4
-rotateX rads = mat4
-  1 0   0   0
-  0 t11 t12 0
-  0 t21 t22 0
-  0 0   0   1
-  where
-    t11 = cost
-    t12 = -sint
-    t21 = sint
-    t22 = cost
-
-    cost = cos rads
-    sint = sin rads
-
-{-# INLINE rotateY #-}
-rotateY :: Float -> Mat4
-rotateY rads = mat4
-  t00 0 t02 0
-  0   1 0   0
-  t20 0 t22 0
-  0   0 0   1
-  where
-    cost = cos rads
-    sint = sin rads
-
-    t00 = cost
-    t02 = sint
-    t20 = -sint
-    t22 = cost
-
-{-# INLINE rotateZ #-}
-rotateZ :: Float -> Mat4
-rotateZ rads = mat4
-  t00 t01 0 0
-  t10 t11 0 0
-  0   0   1 0
-  0   0   0 1
-  where
-   t00 = cost
-   t01 = -sint
-   t10 = sint
-   t11 = cost
-
-   cost = cos rads
-   sint = sin rads
 
 {-# INLINE transpose #-}
 transpose :: Mat4 -> Mat4
@@ -197,27 +231,65 @@ transpose =
       m02 m12 m22 m32
       m03 m13 m23 m33
 
-{-# INLINE mkTransformation #-}
-mkTransformation :: Quaternion -> Vec3 -> Mat4
-mkTransformation rs t =
-  withQuaternion rs \w x y z ->
-  withVec3 t \tx ty tz ->
-    let
-      x2 = x * x
-      y2 = y * y
-      z2 = z * z
-      xy = x * y
-      xz = x * z
-      xw = x * w
-      yz = y * z
-      yw = y * w
-      zw = z * w
-    in
-      mat4
-        (1 - 2 * (y2 + z2)) (    2 * (xy + zw))     (2 * (xz - yw)) 0
-        (    2 * (xy - zw)) (1 - 2 * (x2 + z2))     (2 * (yz + xw)) 0
-        (    2 * (xz + yw))     (2 * (yz - xw)) (1 - 2 * (x2 + y2)) 0
-                       tx                  ty                  tz   1
+{- | Compute an inverse matrix, slowly.
+-}
+inverse :: Mat4 -> Mat4
+inverse m =
+  withMat4 m
+    \ m00 m01 m02 m03
+      m10 m11 m12 m13
+      m20 m21 m22 m23
+      m30 m31 m32 m33 ->
+        let
+          invDet = recip det
+
+          det
+            = s0 * c5
+            - s1 * c4
+            + s2 * c3
+            + s3 * c2
+            - s4 * c1
+            + s5 * c0
+
+          s0 = m00 * m11 - m10 * m01
+          s1 = m00 * m12 - m10 * m02
+          s2 = m00 * m13 - m10 * m03
+          s3 = m01 * m12 - m11 * m02
+          s4 = m01 * m13 - m11 * m03
+          s5 = m02 * m13 - m12 * m03
+
+          c5 = m22 * m33 - m32 * m23
+          c4 = m21 * m33 - m31 * m23
+          c3 = m21 * m32 - m31 * m22
+          c2 = m20 * m33 - m30 * m23
+          c1 = m20 * m32 - m30 * m22
+          c0 = m20 * m31 - m30 * m21
+
+          i00 = ( m11 * c5 - m12 * c4 + m13 * c3) * invDet
+          i01 = (-m01 * c5 + m02 * c4 - m03 * c3) * invDet
+          i02 = ( m31 * s5 - m32 * s4 + m33 * s3) * invDet
+          i03 = (-m21 * s5 + m22 * s4 - m23 * s3) * invDet
+
+          i10 = (-m10 * c5 + m12 * c2 - m13 * c1) * invDet
+          i11 = ( m00 * c5 - m02 * c2 + m03 * c1) * invDet
+          i12 = (-m30 * s5 + m32 * s2 - m33 * s1) * invDet
+          i13 = ( m20 * s5 - m22 * s2 + m23 * s1) * invDet
+
+          i20 = ( m10 * c4 - m11 * c2 + m13 * c0) * invDet
+          i21 = (-m00 * c4 + m01 * c2 - m03 * c0) * invDet
+          i22 = ( m30 * s4 - m31 * s2 + m33 * s0) * invDet
+          i23 = (-m20 * s4 + m21 * s2 - m23 * s0) * invDet
+
+          i30 = (-m10 * c3 + m11 * c1 - m12 * c0) * invDet
+          i31 = ( m00 * c3 - m01 * c1 + m02 * c0) * invDet
+          i32 = (-m30 * s3 + m31 * s1 - m32 * s0) * invDet
+          i33 = ( m20 * s3 - m21 * s1 + m22 * s0) * invDet
+        in
+          mat4
+            i00 i01 i02 i03
+            i10 i11 i12 i13
+            i20 i21 i22 i23
+            i30 i31 i32 i33
 
 pointwise :: Mat4 -> Mat4 -> (Float -> Float -> Float) -> Mat4
 pointwise a b f =
@@ -263,6 +335,35 @@ toListTrans = flip withMat4
 
 zipWith :: (Float -> Float -> c) -> Mat4 -> Mat4 -> [c]
 zipWith f a b = List.zipWith f (toList a) (toList b)
+
+{-# INLINE scalarMultiply #-}
+scalarMultiply :: Float -> Mat4 -> Mat4
+scalarMultiply x m =
+  withMat4 m
+    \ m00 m01 m02 m03
+      m10 m11 m12 m13
+      m20 m21 m22 m23
+      m30 m31 m32 m33 ->
+      mat4
+        (m00 * x) (m10 * x) (m20 * x) (m30 * x)
+        (m01 * x) (m11 * x) (m21 * x) (m31 * x)
+        (m02 * x) (m12 * x) (m22 * x) (m32 * x)
+        (m03 * x) (m13 * x) (m23 * x) (m33 * x)
+
+-- | Matrix - column vector multiplication
+(!*) :: Coercible a Mat4 => a -> Vec4 -> Vec4
+(!*) mat vec =
+  withVec4 vec \v1 v2 v3 v4 ->
+    withColMajor mat
+      \ m11 m12 m13 m14
+        m21 m22 m23 m24
+        m31 m32 m33 m34
+        m41 m42 m43 m44 ->
+          vec4
+            (m11 * v1 + m12 * v2 + m13 * v3 + m14 * v4)
+            (m21 * v1 + m22 * v2 + m23 * v3 + m24 * v4)
+            (m31 * v1 + m32 * v2 + m33 * v3 + m34 * v4)
+            (m41 * v1 + m42 * v2 + m43 * v3 + m44 * v4)
 
 foreign import ccall unsafe "M4x4_SSE" mm4sse :: Addr# -> Addr# -> Addr# -> IO ()
 

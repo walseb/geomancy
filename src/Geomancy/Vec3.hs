@@ -14,6 +14,9 @@ module Geomancy.Vec3
   , cross
   , dot
   , normalize
+
+  , Packed(..)
+  , packed
   ) where
 
 import Control.DeepSeq (NFData(rnf))
@@ -132,10 +135,40 @@ instance Storable Vec3 where
   sizeOf _ = 16
 
   {-# INLINE alignment #-}
-  alignment _ = 16
+  alignment _ = 4
 
   {-# INLINE poke #-}
   poke ptr v3 =
+    withVec3 v3 \a b c -> do
+      poke ptr' a
+      pokeElemOff ptr' 1 b
+      pokeElemOff ptr' 2 c
+      pokeElemOff ptr' 3 (1.0 :: Float)
+    where
+      ptr' = castPtr ptr
+
+  {-# INLINE peek #-}
+  peek ptr =
+    vec3 <$> peek ptr' <*> peekElemOff ptr' 1 <*> peekElemOff ptr' 2
+    where
+      ptr' = castPtr ptr
+
+newtype Packed = Packed { unPacked :: Vec3 }
+  deriving (Eq, Ord, Show)
+
+{-# INLINE packed #-}
+packed :: Float -> Float -> Float -> Packed
+packed x y z = Packed (vec3 x y z)
+
+instance Storable Packed where
+  {-# INLINE sizeOf #-}
+  sizeOf _ = 12
+
+  {-# INLINE alignment #-}
+  alignment _ = 4
+
+  {-# INLINE poke #-}
+  poke ptr (Packed v3) =
     withVec3 v3 \a b c -> do
       poke ptr' a
       pokeElemOff ptr' 1 b
@@ -144,7 +177,9 @@ instance Storable Vec3 where
       ptr' = castPtr ptr
 
   {-# INLINE peek #-}
-  peek ptr =
-    vec3 <$> peek ptr' <*> peekElemOff ptr' 1 <*> peekElemOff ptr' 2
+  peek ptr = packed
+    <$> peek ptr'
+    <*> peekElemOff ptr' 1
+    <*> peekElemOff ptr' 2
     where
       ptr' = castPtr ptr
