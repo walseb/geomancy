@@ -2,6 +2,15 @@
 
 ## Unreleased changes
 
+## 0.2.1.0
+
+Transform rewrite
+
+* Change perspective FoV to radians
++ Add `infinitePerspective`
++ Add `Transform.inverse`
+- Hide `mat4`, `withMat4`
+
 ## 0.2.0.0
 
 Mat4 rewrite
