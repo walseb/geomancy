@@ -1,7 +1,7 @@
 module Geomancy
   ( Mat4
-  , mat4
-  , withMat4
+
+  , Transform(..)
 
   , Quaternion
   , quaternion
@@ -17,7 +17,8 @@ module Geomancy
 
   ) where
 
-import Geomancy.Mat4 (Mat4, mat4, withMat4)
+import Geomancy.Mat4 (Mat4)
+import Geomancy.Transform (Transform(..))
 import Geomancy.Quaternion (Quaternion, quaternion, withQuaternion)
 import Geomancy.Vec3 (Vec3, vec3, withVec3)
 import Geomancy.Vec4 (Vec4, vec4, withVec4)

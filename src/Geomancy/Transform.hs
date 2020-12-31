@@ -4,6 +4,7 @@
 
 module Geomancy.Transform
   ( Transform(..)
+  , inverse
 
   , apply
   , (!.)
@@ -28,7 +29,7 @@ module Geomancy.Transform
 
 import Foreign (Storable(..))
 
-import Geomancy.Mat4 (Mat4, colMajor, withColMajor)
+import Geomancy.Mat4 (Mat4, colMajor, withColMajor, inverse)
 import Geomancy.Quaternion (Quaternion, withQuaternion)
 import Geomancy.Vec3 (Vec3, vec3, withVec3)
 

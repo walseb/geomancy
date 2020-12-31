@@ -5,17 +5,18 @@ module Geomancy.Vulkan.View
   , lookAt
   ) where
 
-import Geomancy.Mat4 (Mat4, mat4)
+import Geomancy.Mat4 (Mat4, rowMajor)
 import Geomancy.Vec3 (Vec3, withVec3)
+import Geomancy.Transform (Transform(..))
 
 import qualified Geomancy.Vec3 as Vec3
 
-lookAt :: Vec3 -> Vec3 -> Vec3 -> Mat4
+lookAt :: Vec3 -> Vec3 -> Vec3 -> Transform
 lookAt eye center up =
   withVec3 xa \xaX xaY xaZ ->
   withVec3 ya \yaX yaY yaZ ->
   withVec3 za \zaX zaY zaZ ->
-  mat4
+  rowMajor
     xaX yaX (-zaX) 0
     xaY yaY (-zaY) 0
     xaZ yaZ (-zaZ) 0
@@ -30,10 +31,11 @@ lookAt eye center up =
     zd =   Vec3.dot za eye
 
 orthoFitScreen :: Float -> Float -> Float -> Float -> Mat4
-orthoFitScreen screenWidth screenHeight targetWidth targetHeight = mat4
-  s 0 0 0
-  0 s 0 0
-  0 0 1 0
-  0 0 0 1
+orthoFitScreen screenWidth screenHeight targetWidth targetHeight =
+  rowMajor
+    s 0 0 0
+    0 s 0 0
+    0 0 1 0
+    0 0 0 1
   where
     s = min (screenWidth / targetWidth) (screenHeight / targetHeight)

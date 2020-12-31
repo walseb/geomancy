@@ -12,8 +12,6 @@ For GLSL-compatible transformations see "Geomancy.Transform.ColMajor".
 
 module Geomancy.Mat4
   ( Mat4
-  , mat4
-  , withMat4
 
   , rowMajor
   , withRowMajor
@@ -233,9 +231,9 @@ transpose =
 
 {- | Compute an inverse matrix, slowly.
 -}
-inverse :: Mat4 -> Mat4
+inverse :: (Coercible Mat4 a, Coercible Mat4 a) => a -> a
 inverse m =
-  withMat4 m
+  coerce $ withMat4 (coerce m)
     \ m00 m01 m02 m03
       m10 m11 m12 m13
       m20 m21 m22 m23
