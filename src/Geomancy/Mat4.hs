@@ -17,19 +17,19 @@ module Geomancy.Mat4
   , rowMajor
   , withRowMajor
   , toListRowMajor
+  , toListRowMajor2d
   , fromRowMajor2d
 
   , colMajor
   , withColMajor
   , toListColMajor
+  , toListColMajor2d
 
   , identity
   , transpose
   , inverse
   , pointwise
   , zipWith
-  , toList
-  , toListTrans
   , matrixProduct
   , scalarMultiply
   , (!*)
@@ -79,6 +79,9 @@ withRowMajor m = withMat4 (coerce m)
 
 toListRowMajor :: Coercible a Mat4 => a -> [Float]
 toListRowMajor = toList . coerce
+
+toListRowMajor2d :: Coercible a Mat4 => a -> [[Float]]
+toListRowMajor2d = toList2d . coerce
 
 {- |
   Build a Mat4 from a list-of-lists kind of container
@@ -165,6 +168,9 @@ withColMajor m f = withMat4 (coerce m)
 
 toListColMajor :: Coercible a Mat4 => a -> [Float]
 toListColMajor = toListTrans . coerce
+
+toListColMajor2d :: Coercible a Mat4 => a -> [[Float]]
+toListColMajor2d = toList2dTrans . coerce
 
 {- | Construct 'Mat4' from elements in memory order.
 -}
@@ -359,6 +365,18 @@ toList = flip withMat4
     , a30, a31, a32, a33
     ]
 
+toList2d :: Mat4 -> [[Float]]
+toList2d = flip withMat4
+    \ a00 a01 a02 a03
+      a10 a11 a12 a13
+      a20 a21 a22 a23
+      a30 a31 a32 a33 ->
+    [ [a00, a01, a02, a03]
+    , [a10, a11, a12, a13]
+    , [a20, a21, a22, a23]
+    , [a30, a31, a32, a33]
+    ]
+
 toListTrans :: Mat4 -> [Float]
 toListTrans = flip withMat4
     \ a00 a01 a02 a03
@@ -369,6 +387,18 @@ toListTrans = flip withMat4
     , a01, a11, a21, a31
     , a02, a12, a22, a32
     , a03, a13, a23, a33
+    ]
+
+toList2dTrans :: Mat4 -> [[Float]]
+toList2dTrans = flip withMat4
+    \ a00 a01 a02 a03
+      a10 a11 a12 a13
+      a20 a21 a22 a23
+      a30 a31 a32 a33 ->
+    [ [a00, a10, a20, a30]
+    , [a01, a11, a21, a31]
+    , [a02, a12, a22, a32]
+    , [a03, a13, a23, a33]
     ]
 
 zipWith :: (Float -> Float -> c) -> Mat4 -> Mat4 -> [c]
