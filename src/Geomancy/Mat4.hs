@@ -2,6 +2,7 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 
@@ -16,6 +17,7 @@ module Geomancy.Mat4
   , rowMajor
   , withRowMajor
   , toListRowMajor
+  , fromRowMajor2d
 
   , colMajor
   , withColMajor
@@ -42,6 +44,7 @@ import GHC.IO (IO(..))
 import System.IO.Unsafe (unsafePerformIO)
 import Text.Printf (printf)
 
+import qualified Data.Foldable as Foldable
 import qualified Data.List as List
 
 import Geomancy.Vec4 (Vec4, vec4, withVec4)
@@ -76,6 +79,43 @@ withRowMajor m = withMat4 (coerce m)
 
 toListRowMajor :: Coercible a Mat4 => a -> [Float]
 toListRowMajor = toList . coerce
+
+{- |
+  Build a Mat4 from a list-of-lists kind of container
+  with row-major ordering of elements.
+
+@
+  fromRowMajor2d (Linear.mkTransformation dir pos) :: Transform
+@
+-}
+fromRowMajor2d
+  :: forall t a
+  .  ( Foldable t
+     , Coercible Mat4 a
+     )
+  => t (t Float)
+  -> Maybe a
+fromRowMajor2d rows =
+  case Foldable.toList rows of
+    [r0, r1, r2, r3] ->
+      withRow r0 \m00 m01 m02 m03 ->
+      withRow r1 \m10 m11 m12 m13 ->
+      withRow r2 \m20 m21 m22 m23 ->
+      withRow r3 \m30 m31 m32 m33 ->
+        Just . coerce $ mat4
+          m00 m01 m02 m03
+          m10 m11 m12 m13
+          m20 m21 m22 m23
+          m30 m31 m32 m33
+    _ ->
+      Nothing
+  where
+    withRow row f =
+      case Foldable.toList row of
+        [c0, c1, c2, c3] ->
+          f c0 c1 c2 c3
+        _ ->
+          Nothing
 
 {- | Construct a 'Mat4' from @column@ notation.
 -}
