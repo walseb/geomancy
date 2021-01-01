@@ -1,15 +1,20 @@
 # Changelog for geomancy
 
-## Unreleased changes
+## 0.2.2.0
+
++ Add pattern synonym alternatives to `withVecN`.
++ Add Mat4 converstion from `Linear.M44`.
+- Hide `toList` and `toListTrans`.
++ Add `toList2d` and publish its element-order wrappers.
 
 ## 0.2.1.0
 
 Transform rewrite
 
-* Change perspective FoV to radians
-+ Add `infinitePerspective`
-+ Add `Transform.inverse`
-- Hide `mat4`, `withMat4`
+* Change perspective FoV to radians.
++ Add `infinitePerspective`.
++ Add `Transform.inverse`.
+- Hide `mat4`, `withMat4`.
 
 ## 0.2.0.0
 
