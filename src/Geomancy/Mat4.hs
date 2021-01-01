@@ -6,10 +6,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 
-{- | General matrix storage and operations.
-
-For GLSL-compatible transformations see "Geomancy.Transform.ColMajor".
--}
+-- | General matrix storage and operations.
 
 module Geomancy.Mat4
   ( Mat4
