@@ -1,4 +1,6 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 
 -- | Specialized and inlined @V4 Float@.
 
@@ -6,6 +8,7 @@ module Geomancy.Vec4
   ( Vec4
   , vec4
   , withVec4
+  , pattern WithVec4
 
   , (^*)
   , (^/)
@@ -35,6 +38,10 @@ withVec4
   -> (Float -> Float -> Float -> Float -> r)
   -> r
 withVec4 (Vec4 a b c d) f = f a b c d
+
+pattern WithVec4 :: Float -> Float -> Float -> Float -> Vec4
+pattern WithVec4 a b c d <- ((`withVec4` (,,,)) -> (a, b, c, d))
+{-# COMPLETE WithVec4 #-}
 
 instance NFData Vec4 where
   rnf Vec4{} = ()
