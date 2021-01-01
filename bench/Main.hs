@@ -19,7 +19,7 @@ main = defaultMain
   [ bgroup "4x4 transpose"
       mat4transpose
 
-  , bgroup "4x4 multiply" $ flip map [2, 3, 10, 100] \size ->
+  , bgroup "4x4 multiply" $ flip map [2, 3, 10, 100, 1000] \size ->
       env (clones size mempty Linear.identity) $
         mat4multiply size
 
