@@ -2,7 +2,8 @@
 
 ## 0.2.2.1
 
-+ Add Vec2
++ Add Vec2.
++ Add pattern synonyms to `Geomancy` re-exports.
 
 ## 0.2.2.0
 
