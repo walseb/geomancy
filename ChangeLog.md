@@ -4,6 +4,7 @@
 
 + Add Vec2.
 + Add pattern synonyms to `Geomancy` re-exports.
++ Add Fractional instances
 
 ## 0.2.2.0
 

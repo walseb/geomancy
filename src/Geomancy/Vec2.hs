@@ -76,6 +76,20 @@ instance Num Vec2 where
     where
       x' = fromInteger x
 
+instance Fractional Vec2 where
+  {-# INLINE (/) #-}
+  Vec2 l1 l2 / Vec2 r1 r2 =
+    Vec2 (l1 / r1) (l2 / r2)
+
+  {-# INLINE recip #-}
+  recip (Vec2 a b) =
+    Vec2 (recip a) (recip b)
+
+  {-# INLINE fromRational #-}
+  fromRational x = Vec2 x' x'
+    where
+      x' = fromRational x
+
 {-# INLINE (^*) #-}
 (^*) :: Vec2 -> Float -> Vec2
 Vec2 a b ^* x =

@@ -84,6 +84,20 @@ instance Num Vec4 where
     where
       x' = fromInteger x
 
+instance Fractional Vec4 where
+  {-# INLINE (/) #-}
+  Vec4 l1 l2 l3 l4 / Vec4 r1 r2 r3 r4 =
+    Vec4 (l1 / r1) (l2 / r2) (l3 / r3) (l4 / r4)
+
+  {-# INLINE recip #-}
+  recip (Vec4 a b c d) =
+    Vec4 (recip a) (recip b) (recip c) (recip d)
+
+  {-# INLINE fromRational #-}
+  fromRational x = Vec4 x' x' x' x'
+    where
+      x' = fromRational x
+
 {-# INLINE (^*) #-}
 (^*) :: Vec4 -> Float -> Vec4
 Vec4 a b c d ^* x =

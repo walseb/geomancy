@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -84,6 +85,20 @@ instance Num Vec3 where
     where
       x' = fromInteger x
 
+instance Fractional Vec3 where
+  {-# INLINE (/) #-}
+  Vec3 l1 l2 l3 / Vec3 r1 r2 r3 =
+    Vec3 (l1 / r1) (l2 / r2) (l3 / r3)
+
+  {-# INLINE recip #-}
+  recip (Vec3 a b c) =
+    Vec3 (recip a) (recip b) (recip c)
+
+  {-# INLINE fromRational #-}
+  fromRational x = Vec3 x' x' x'
+    where
+      x' = fromRational x
+
 {-# INLINE (^*) #-}
 (^*) :: Vec3 -> Float -> Vec3
 Vec3 a b c ^* x =
@@ -161,7 +176,7 @@ instance Storable Vec3 where
       ptr' = castPtr ptr
 
 newtype Packed = Packed { unPacked :: Vec3 }
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, NFData, Num, Fractional)
 
 {-# INLINE packed #-}
 packed :: Float -> Float -> Float -> Packed
