@@ -1,5 +1,9 @@
 # Changelog for geomancy
 
+## 0.2.2.1
+
++ Add Vec2
+
 ## 0.2.2.0
 
 + Add pattern synonym alternatives to `withVecN`.
