@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -9,6 +10,10 @@ module Geomancy.Vec4
   , vec4
   , withVec4
   , pattern WithVec4
+  , fromVec2
+  , fromVec22
+  , fromVec3
+  , fromTuple
 
   , (^*)
   , (^/)
@@ -19,7 +24,11 @@ module Geomancy.Vec4
   ) where
 
 import Control.DeepSeq (NFData(rnf))
+import Data.Coerce (Coercible, coerce)
 import Foreign (Storable(..), castPtr)
+
+import Geomancy.Vec2 (Vec2, withVec2)
+import Geomancy.Vec3 (Vec3, withVec3)
 
 data Vec4 = Vec4
   {-# UNPACK #-} !Float
@@ -42,6 +51,29 @@ withVec4 (Vec4 a b c d) f = f a b c d
 pattern WithVec4 :: Float -> Float -> Float -> Float -> Vec4
 pattern WithVec4 a b c d <- ((`withVec4` (,,,)) -> (a, b, c, d))
 {-# COMPLETE WithVec4 #-}
+
+{-# INLINE fromVec2 #-}
+fromVec2 :: Vec2 -> Float -> Float -> Vec4
+fromVec2 xy z w =
+  withVec2 xy \x y ->
+    vec4 x y z w
+
+{-# INLINE fromVec22 #-}
+fromVec22 :: Vec2 -> Vec2 -> Vec4
+fromVec22 xy zw =
+  withVec2 xy \x y ->
+  withVec2 zw \z w ->
+    vec4 x y z w
+
+{-# INLINE fromVec3 #-}
+fromVec3 :: Coercible a Vec3 => a -> Float -> Vec4
+fromVec3 xyz w =
+  withVec3 (coerce xyz) \x y z ->
+    vec4 x y z w
+
+{-# INLINE fromTuple #-}
+fromTuple :: (Float, Float, Float, Float) -> Vec4
+fromTuple (x, y, z, w) = vec4 x y z w
 
 instance NFData Vec4 where
   rnf Vec4{} = ()
@@ -98,6 +130,32 @@ instance Fractional Vec4 where
     where
       x' = fromRational x
 
+instance Storable Vec4 where
+  {-# INLINE sizeOf #-}
+  sizeOf _ = 16
+
+  {-# INLINE alignment #-}
+  alignment _ = 16
+
+  {-# INLINE poke #-}
+  poke ptr v4 =
+    withVec4 v4 \a b c d -> do
+      poke ptr' a
+      pokeElemOff ptr' 1 b
+      pokeElemOff ptr' 2 c
+      pokeElemOff ptr' 3 d
+    where
+      ptr' = castPtr ptr
+
+  {-# INLINE peek #-}
+  peek ptr = vec4
+    <$> peek ptr'
+    <*> peekElemOff ptr' 1
+    <*> peekElemOff ptr' 2
+    <*> peekElemOff ptr' 3
+    where
+      ptr' = castPtr ptr
+
 {-# INLINE (^*) #-}
 (^*) :: Vec4 -> Float -> Vec4
 Vec4 a b c d ^* x =
@@ -144,29 +202,3 @@ normalize v =
     l = sqrt q
 
     nearZero a = abs a <= 1e-6
-
-instance Storable Vec4 where
-  {-# INLINE sizeOf #-}
-  sizeOf _ = 16
-
-  {-# INLINE alignment #-}
-  alignment _ = 16
-
-  {-# INLINE poke #-}
-  poke ptr v4 =
-    withVec4 v4 \a b c d -> do
-      poke ptr' a
-      pokeElemOff ptr' 1 b
-      pokeElemOff ptr' 2 c
-      pokeElemOff ptr' 3 d
-    where
-      ptr' = castPtr ptr
-
-  {-# INLINE peek #-}
-  peek ptr = vec4
-    <$> peek ptr'
-    <*> peekElemOff ptr' 1
-    <*> peekElemOff ptr' 2
-    <*> peekElemOff ptr' 3
-    where
-      ptr' = castPtr ptr

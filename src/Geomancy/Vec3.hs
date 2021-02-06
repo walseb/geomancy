@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -10,6 +11,8 @@ module Geomancy.Vec3
   , vec3
   , withVec3
   , pattern WithVec3
+  , fromVec2
+  , fromTuple
 
   , (^*)
   , (^/)
@@ -24,7 +27,10 @@ module Geomancy.Vec3
   ) where
 
 import Control.DeepSeq (NFData(rnf))
+import Data.Coerce (Coercible, coerce)
 import Foreign (Storable(..), castPtr)
+
+import Geomancy.Vec2 (Vec2, withVec2)
 
 data Vec3 = Vec3
   {-# UNPACK #-} !Float
@@ -46,6 +52,16 @@ withVec3 (Vec3 a b c) f = f a b c
 pattern WithVec3 :: Float -> Float -> Float -> Vec3
 pattern WithVec3 a b c <- ((`withVec3` (,,)) -> (a, b, c))
 {-# COMPLETE WithVec3 #-}
+
+{-# INLINE fromVec2 #-}
+fromVec2 :: Coercible Vec3 a => Vec2 -> Float -> a
+fromVec2 xy z =
+  withVec2 xy \x y ->
+    coerce (vec3 x y z)
+
+{-# INLINE fromTuple #-}
+fromTuple :: Coercible Vec3 a => (Float, Float, Float) -> a
+fromTuple (x, y, z) = coerce (vec3 x y z)
 
 instance NFData Vec3 where
   rnf Vec3{} = ()
@@ -99,6 +115,34 @@ instance Fractional Vec3 where
     where
       x' = fromRational x
 
+{-
+  XXX: GPU layouts call for some padding.
+
+  Maybe it would be worth it to flip the sizeOf-s.
+-}
+instance Storable Vec3 where
+  {-# INLINE sizeOf #-}
+  sizeOf _ = 16
+
+  {-# INLINE alignment #-}
+  alignment _ = 4
+
+  {-# INLINE poke #-}
+  poke ptr v3 =
+    withVec3 v3 \a b c -> do
+      poke ptr' a
+      pokeElemOff ptr' 1 b
+      pokeElemOff ptr' 2 c
+      pokeElemOff ptr' 3 (1.0 :: Float)
+    where
+      ptr' = castPtr ptr
+
+  {-# INLINE peek #-}
+  peek ptr =
+    vec3 <$> peek ptr' <*> peekElemOff ptr' 1 <*> peekElemOff ptr' 2
+    where
+      ptr' = castPtr ptr
+
 {-# INLINE (^*) #-}
 (^*) :: Vec3 -> Float -> Vec3
 Vec3 a b c ^* x =
@@ -151,29 +195,7 @@ normalize v =
 
     nearZero a = abs a <= 1e-6
 
--- XXX: GPU layouts call for some padding.
-instance Storable Vec3 where
-  {-# INLINE sizeOf #-}
-  sizeOf _ = 16
-
-  {-# INLINE alignment #-}
-  alignment _ = 4
-
-  {-# INLINE poke #-}
-  poke ptr v3 =
-    withVec3 v3 \a b c -> do
-      poke ptr' a
-      pokeElemOff ptr' 1 b
-      pokeElemOff ptr' 2 c
-      pokeElemOff ptr' 3 (1.0 :: Float)
-    where
-      ptr' = castPtr ptr
-
-  {-# INLINE peek #-}
-  peek ptr =
-    vec3 <$> peek ptr' <*> peekElemOff ptr' 1 <*> peekElemOff ptr' 2
-    where
-      ptr' = castPtr ptr
+-- * Unpadded
 
 newtype Packed = Packed { unPacked :: Vec3 }
   deriving (Eq, Ord, Show, NFData, Num, Fractional)

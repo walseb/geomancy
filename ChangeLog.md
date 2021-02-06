@@ -4,7 +4,8 @@
 
 + Add Vec2.
 + Add pattern synonyms to `Geomancy` re-exports.
-+ Add Fractional instances
++ Add Fractional instances.
++ Add conversions from tuples and lower-dimension vecs.
 
 ## 0.2.2.0
 

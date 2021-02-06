@@ -9,6 +9,7 @@ module Geomancy.Vec2
   , vec2
   , withVec2
   , pattern WithVec2
+  , fromTuple
 
   , (^*)
   , (^/)
@@ -40,6 +41,10 @@ withVec2 (Vec2 a b) f = f a b
 pattern WithVec2 :: Float -> Float -> Vec2
 pattern WithVec2 a b <- ((`withVec2` (,)) -> (a, b))
 {-# COMPLETE WithVec2 #-}
+
+{-# INLINE fromTuple #-}
+fromTuple :: (Float, Float) -> Vec2
+fromTuple (x, y) = vec2 x y
 
 instance NFData Vec2 where
   rnf Vec2{} = ()
