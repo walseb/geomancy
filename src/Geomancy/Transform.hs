@@ -53,7 +53,7 @@ apply = flip (!.)
             px = m11 * v1 + m12 * v2 + m13 * v3 + m14
             py = m21 * v1 + m22 * v2 + m23 * v3 + m24
             pz = m31 * v1 + m32 * v2 + m33 * v3 + m34
-            p  = m41      + m42      + m43      + m44
+            p  = m41 * v1 + m42 * v2 + m43 * v3 + m44
           in
             vec3 (px / p) (py / p) (pz / p)
 

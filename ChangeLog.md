@@ -1,5 +1,9 @@
 # Changelog for geomancy
 
+## 0.2.2.2
+
++ Fixed using Transform.apply with projection inverses.
+
 ## 0.2.2.1
 
 + Add Vec2.
