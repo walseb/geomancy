@@ -4,17 +4,17 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fa07be7db20e22f0bf8e79f9e1aaa1bf793828e6c58133f22ac4185eadcbfe17
+-- hash: 0bbbcdde42a68176d0c54cb31c5798701541c1ce73877ad066e6aec522450641
 
 name:           geomancy
-version:        0.2.2.1
+version:        0.2.2.3
 synopsis:       Geometry and matrix manipulation
 description:    Sometimes it is unavoidable you have to do stuff on CPU.
                 Let's at least do it faster.
 category:       Graphics
 author:         Alexander Bondarenko
 maintainer:     aenor.realm@gmail.com
-copyright:      2020 Alexander Bondarenko
+copyright:      2021 Alexander Bondarenko
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -29,9 +29,15 @@ source-repository head
 library
   exposed-modules:
       Geomancy
+      Geomancy.IVec2
+      Geomancy.IVec3
+      Geomancy.IVec4
       Geomancy.Mat4
       Geomancy.Quaternion
       Geomancy.Transform
+      Geomancy.UVec2
+      Geomancy.UVec3
+      Geomancy.UVec4
       Geomancy.Vec2
       Geomancy.Vec3
       Geomancy.Vec4

@@ -1,5 +1,9 @@
 # Changelog for geomancy
 
+## 0.2.2.3
+
++ Add IVec and UVec 32-bit integer vectors.
+
 ## 0.2.2.2
 
 + Fixed using Transform.apply with projection inverses.
