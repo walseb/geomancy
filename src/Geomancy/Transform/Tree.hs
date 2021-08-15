@@ -23,7 +23,7 @@ module Geomancy.Transform.Tree
 
 import Geomancy.Quaternion (Quaternion)
 import Geomancy.Transform (Transform)
-import Geomancy.Tree (Tree, node_, leaf_)
+import Geomancy.Tree (Tree, apply, node_, leaf_, collect_)
 import Geomancy.Vec3 (Vec3)
 
 import qualified Geomancy.Transform as Transform
