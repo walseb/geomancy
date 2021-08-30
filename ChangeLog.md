@@ -1,5 +1,10 @@
 # Changelog for geomancy
 
+## 0.2.3.0
+
+- Vec4 moved to ByteArray#.
+- Mat4 !* Vec4 is now SIMD too.
+
 ## 0.2.2.4
 
 + Add Transform trees.
