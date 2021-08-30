@@ -5,6 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UnliftedFFITypes #-}
+{-# LANGUAGE ViewPatterns #-}
 
 -- | General matrix storage and operations.
 
@@ -33,7 +34,7 @@ module Geomancy.Mat4
   ) where
 
 import Prelude hiding (zipWith)
-import GHC.Exts hiding (toList)
+import GHC.Exts hiding (VecCount(..), toList)
 
 import Control.DeepSeq (NFData(rnf))
 import Foreign (Storable(..))
@@ -44,7 +45,7 @@ import Text.Printf (printf)
 import qualified Data.Foldable as Foldable
 import qualified Data.List as List
 
-import Geomancy.Vec4 (Vec4, vec4, withVec4)
+import Geomancy.Vec4 (Vec4(..), unsafeNewVec4)
 
 data Mat4 = Mat4 ByteArray#
 
@@ -401,42 +402,13 @@ toList2dTrans = flip withMat4
 zipWith :: (Float -> Float -> c) -> Mat4 -> Mat4 -> [c]
 zipWith f a b = List.zipWith f (toList a) (toList b)
 
-{-# INLINE scalarMultiply #-}
-scalarMultiply :: Float -> Mat4 -> Mat4
-scalarMultiply x m =
-  withMat4 m
-    \ m00 m01 m02 m03
-      m10 m11 m12 m13
-      m20 m21 m22 m23
-      m30 m31 m32 m33 ->
-      mat4
-        (m00 * x) (m10 * x) (m20 * x) (m30 * x)
-        (m01 * x) (m11 * x) (m21 * x) (m31 * x)
-        (m02 * x) (m12 * x) (m22 * x) (m32 * x)
-        (m03 * x) (m13 * x) (m23 * x) (m33 * x)
-
--- | Matrix - column vector multiplication
-(!*) :: Coercible a Mat4 => a -> Vec4 -> Vec4
-(!*) mat vec =
-  withVec4 vec \v1 v2 v3 v4 ->
-    withColMajor mat
-      \ m11 m12 m13 m14
-        m21 m22 m23 m24
-        m31 m32 m33 m34
-        m41 m42 m43 m44 ->
-          vec4
-            (m11 * v1 + m12 * v2 + m13 * v3 + m14 * v4)
-            (m21 * v1 + m22 * v2 + m23 * v3 + m24 * v4)
-            (m31 * v1 + m32 * v2 + m33 * v3 + m34 * v4)
-            (m41 * v1 + m42 * v2 + m43 * v3 + m44 * v4)
-
-foreign import ccall unsafe "M4x4_SSE" mm4sse :: Addr# -> Addr# -> Addr# -> IO ()
+foreign import ccall unsafe "Mat4xMat4_SSE" m4m4sse :: Addr# -> Addr# -> Addr# -> IO ()
 
 {-# INLINE matrixProduct #-}
 matrixProduct :: Mat4 -> Mat4 -> Mat4
 matrixProduct (Mat4 l) (Mat4 r) = unsafePerformIO do
   result@(Mat4 m) <- unsafeNewMat4
-  mm4sse
+  m4m4sse
     (byteArrayContents# l)
     (byteArrayContents# r)
     (byteArrayContents# m)
@@ -451,6 +423,44 @@ unsafeNewMat4 =
       !(# _world', arr #) = unsafeFreezeByteArray# arr_ world_
     in
       (# world, Mat4 arr #)
+
+{-# INLINE scalarMultiply #-}
+scalarMultiply :: Float -> Mat4 -> Mat4
+scalarMultiply x m =
+  withMat4 m
+    \ m00 m01 m02 m03
+      m10 m11 m12 m13
+      m20 m21 m22 m23
+      m30 m31 m32 m33 ->
+      mat4
+        (m00 * x) (m10 * x) (m20 * x) (m30 * x)
+        (m01 * x) (m11 * x) (m21 * x) (m31 * x)
+        (m02 * x) (m12 * x) (m22 * x) (m32 * x)
+        (m03 * x) (m13 * x) (m23 * x) (m33 * x)
+
+foreign import ccall unsafe "Mat4xVec4_SSE" m4v4sse :: Addr# -> Addr# -> Addr# -> IO ()
+
+-- | Matrix - column vector multiplication
+(!*) :: Coercible a Mat4 => a -> Vec4 -> Vec4
+(!*) (coerce -> Mat4 m) (Vec4 v) = unsafePerformIO do
+  result@(Vec4 o) <- unsafeNewVec4
+  m4v4sse
+    (byteArrayContents# m)
+    (byteArrayContents# v)
+    (byteArrayContents# o)
+  pure result
+
+  -- withVec4 vec \v1 v2 v3 v4 ->
+  --   withColMajor mat
+  --     \ m11 m12 m13 m14
+  --       m21 m22 m23 m24
+  --       m31 m32 m33 m34
+  --       m41 m42 m43 m44 ->
+  --         vec4
+  --           (m11 * v1 + m12 * v2 + m13 * v3 + m14 * v4)
+  --           (m21 * v1 + m22 * v2 + m23 * v3 + m24 * v4)
+  --           (m31 * v1 + m32 * v2 + m33 * v3 + m34 * v4)
+  --           (m41 * v1 + m42 * v2 + m43 * v3 + m44 * v4)
 
 instance NFData Mat4 where
   rnf Mat4{} = ()

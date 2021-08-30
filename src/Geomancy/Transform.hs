@@ -29,9 +29,12 @@ module Geomancy.Transform
 
 import Foreign (Storable(..))
 
-import Geomancy.Mat4 (Mat4, colMajor, withColMajor, inverse)
+import Geomancy.Mat4 (Mat4, colMajor, inverse)
 import Geomancy.Quaternion (Quaternion, withQuaternion)
 import Geomancy.Vec3 (Vec3, vec3, withVec3)
+import Geomancy.Vec4 (fromVec3, withVec4)
+
+import qualified Geomancy.Mat4 as Mat4
 
 newtype Transform = Transform { unTransform :: Mat4 }
   deriving newtype (Show, Semigroup, Monoid, Storable)
@@ -43,19 +46,10 @@ apply = flip (!.)
 -- | Matrix - column vector multiplication with perspective division
 (!.) :: Transform -> Vec3 -> Vec3
 (!.) mat vec =
-  withVec3 vec \v1 v2 v3 ->
-    withColMajor mat
-      \ m11 m12 m13 m14
-        m21 m22 m23 m24
-        m31 m32 m33 m34
-        m41 m42 m43 m44 ->
-          let
-            px = m11 * v1 + m12 * v2 + m13 * v3 + m14
-            py = m21 * v1 + m22 * v2 + m23 * v3 + m24
-            pz = m31 * v1 + m32 * v2 + m33 * v3 + m34
-            p  = m41 * v1 + m42 * v2 + m43 * v3 + m44
-          in
-            vec3 (px / p) (py / p) (pz / p)
+  withVec4 res \x y z w ->
+    vec3 (x / w) (y / w) (z / w)
+  where
+    res = mat Mat4.!* fromVec3 vec 1.0
 
 -- ** Translation
 
