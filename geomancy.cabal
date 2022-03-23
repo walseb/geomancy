@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aa93c14151d6ba606892efc64f6795f6f0ec8ebfc5b9f24e104d5b4676cf8bb8
+-- hash: c47c57e0b2996935a39027ff12994b4d3e78932214e44194b3576552e309a876
 
 name:           geomancy
-version:        0.2.3.0
+version:        0.2.4.0
 synopsis:       Geometry and matrix manipulation
 description:    Sometimes it is unavoidable you have to do stuff on CPU.
                 Let's at least do it faster.
@@ -33,6 +33,7 @@ library
       Geomancy.IVec3
       Geomancy.IVec4
       Geomancy.Mat4
+      Geomancy.Point
       Geomancy.Quaternion
       Geomancy.Transform
       Geomancy.Transform.Tree
@@ -43,6 +44,7 @@ library
       Geomancy.Vec2
       Geomancy.Vec3
       Geomancy.Vec4
+      Geomancy.Vector
       Geomancy.Vulkan.Projection
       Geomancy.Vulkan.View
   other-modules:
@@ -56,6 +58,7 @@ library
       base >=4.7 && <5
     , containers
     , deepseq
+    , simple-affine-space
   default-language: Haskell2010
 
 test-suite geomancy-test
@@ -72,6 +75,7 @@ test-suite geomancy-test
     , geomancy
     , hedgehog
     , linear
+    , simple-affine-space
   default-language: Haskell2010
 
 benchmark geomancy-bench
@@ -88,4 +92,5 @@ benchmark geomancy-bench
     , deepseq
     , geomancy
     , linear
+    , simple-affine-space
   default-language: Haskell2010

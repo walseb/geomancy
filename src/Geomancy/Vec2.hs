@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -20,7 +21,9 @@ module Geomancy.Vec2
   ) where
 
 import Control.DeepSeq (NFData(rnf))
+import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..))
+import qualified Data.VectorSpace as VectorSpace
 
 data Vec2 = Vec2
   {-# UNPACK #-} !Float
@@ -152,3 +155,27 @@ instance Storable Vec2 where
   peek ptr = vec2
     <$> peekByteOff ptr 0
     <*> peekByteOff ptr 4
+
+instance VectorSpace Vec2 Float where
+  zeroVector = 0
+
+  {-# INLINE (*^) #-}
+  a *^ v = v Geomancy.Vec2.^* a
+
+  {-# INLINE (^/) #-}
+  v ^/ a = v Geomancy.Vec2.^/ a
+
+  {-# INLINE (^+^) #-}
+  v1 ^+^ v2 = v1 + v2
+
+  {-# INLINE (^-^) #-}
+  v1 ^-^ v2 = v1 - v2
+
+  {-# INLINE negateVector #-}
+  negateVector v = -v
+
+  {-# INLINE dot #-}
+  dot = Geomancy.Vec2.dot
+
+  {-# INLINE normalize #-}
+  normalize = Geomancy.Vec2.normalize

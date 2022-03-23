@@ -10,16 +10,20 @@ module Geomancy
   , vec2
   , withVec2
   , pattern WithVec2
+  , Point2
 
   , Vec3
   , vec3
   , withVec3
   , pattern WithVec3
+  , Point3
+  , Point3P
 
   , Vec4
   , vec4
   , withVec4
   , pattern WithVec4
+  , Point4
 
   -- ** Signed / int32s
 
@@ -65,6 +69,16 @@ module Geomancy
   , Quaternion
   , quaternion
   , withQuaternion
+
+  -- * Spaces
+
+  , Point(..)
+  , AffineSpace(..)
+  , VectorSpace(..)
+  , (^*)
+  , lerp
+  , quadrance
+  ,
   ) where
 
 import Geomancy.Vec2 (Vec2, vec2, withVec2, pattern WithVec2)
@@ -83,3 +97,6 @@ import Geomancy.Mat4 (Mat4)
 import Geomancy.Transform (Transform(..))
 
 import Geomancy.Quaternion (Quaternion, quaternion, withQuaternion)
+
+import Geomancy.Point (AffineSpace(..), Point(..), Point2, Point3, Point3P, Point4)
+import Geomancy.Vector (VectorSpace(..), lerp, quadrance, (^*))

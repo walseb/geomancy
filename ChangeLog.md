@@ -1,5 +1,11 @@
 # Changelog for geomancy
 
+## 0.2.4.0
+
++ Added `simple-affine-space` instances.
+  * The classes are re-exported from `Geomancy`, bringing stuff like `dot` and `normalize`.
++ Added `Point2`, `Point3` wrappers.
+
 ## 0.2.3.0
 
 - Vec4 moved to ByteArray#.

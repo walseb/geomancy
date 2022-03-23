@@ -1,8 +1,10 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 -- | Specialized and inlined @V3 Float@.
 
@@ -28,7 +30,9 @@ module Geomancy.Vec3
 
 import Control.DeepSeq (NFData(rnf))
 import Data.Coerce (Coercible, coerce)
+import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..), castPtr)
+import qualified Data.VectorSpace as VectorSpace
 
 import Geomancy.Vec2 (Vec2, withVec2)
 
@@ -195,6 +199,30 @@ normalize v =
 
     nearZero a = abs a <= 1e-6
 
+instance VectorSpace Vec3 Float where
+  zeroVector = 0
+
+  {-# INLINE (*^) #-}
+  a *^ v = v Geomancy.Vec3.^* a
+
+  {-# INLINE (^/) #-}
+  v ^/ a = v Geomancy.Vec3.^/ a
+
+  {-# INLINE (^+^) #-}
+  v1 ^+^ v2 = v1 + v2
+
+  {-# INLINE (^-^) #-}
+  v1 ^-^ v2 = v1 - v2
+
+  {-# INLINE negateVector #-}
+  negateVector v = -v
+
+  {-# INLINE dot #-}
+  dot = Geomancy.Vec3.dot
+
+  {-# INLINE normalize #-}
+  normalize = Geomancy.Vec3.normalize
+
 -- * Unpadded
 
 newtype Packed = Packed { unPacked :: Vec3 }
@@ -227,3 +255,27 @@ instance Storable Packed where
     <*> peekElemOff ptr' 2
     where
       ptr' = castPtr ptr
+
+instance VectorSpace Packed Float where
+  zeroVector = 0
+
+  {-# INLINE (*^) #-}
+  (*^) = flip $ coerce (Geomancy.Vec3.^*)
+
+  {-# INLINE (^/) #-}
+  (^/) = coerce (Geomancy.Vec3.^/)
+
+  {-# INLINE (^+^) #-}
+  v1 ^+^ v2 = v1 + v2
+
+  {-# INLINE (^-^) #-}
+  v1 ^-^ v2 = v1 - v2
+
+  {-# INLINE negateVector #-}
+  negateVector v = -v
+
+  {-# INLINE dot #-}
+  dot = coerce Geomancy.Vec3.dot
+
+  {-# INLINE normalize #-}
+  normalize = coerce Geomancy.Vec3.normalize
