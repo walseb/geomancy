@@ -1,6 +1,7 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
 
 -- | Specialized and inlined @V2 Word32@.
@@ -18,6 +19,7 @@ module Geomancy.UVec3
 
 import Control.DeepSeq (NFData(rnf))
 import Data.Word (Word32)
+import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign (Storable(..))
 
 data UVec3 = UVec3
@@ -47,6 +49,18 @@ fromTuple (a, b, c) = uvec3 a b c
 
 instance NFData UVec3 where
   rnf UVec3{} = ()
+
+type instance Element UVec3 = Word32
+
+instance MonoFunctor UVec3 where
+  {-# INLINE omap #-}
+  omap f v =
+    withUVec3 v \x y z ->
+      uvec3 (f x) (f y) (f z)
+
+instance MonoPointed UVec3 where
+  {-# INLINE opoint #-}
+  opoint x = uvec3 x x x
 
 -- XXX: That's another nasty instance...
 instance Num UVec3 where

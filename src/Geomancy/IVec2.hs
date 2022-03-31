@@ -1,6 +1,7 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -- | Specialized and inlined @V2 Int32@.
 
@@ -14,6 +15,7 @@ module Geomancy.IVec2
 
 import Control.DeepSeq (NFData(rnf))
 import Data.Int (Int32)
+import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign (Storable(..))
 
 data IVec2 = IVec2
@@ -42,6 +44,18 @@ fromTuple (x, y) = ivec2 x y
 
 instance NFData IVec2 where
   rnf IVec2{} = ()
+
+type instance Element IVec2 = Int32
+
+instance MonoFunctor IVec2 where
+  {-# INLINE omap #-}
+  omap f v =
+    withIVec2 v \x y ->
+      ivec2 (f x) (f y)
+
+instance MonoPointed IVec2 where
+  {-# INLINE opoint #-}
+  opoint x = ivec2 x x
 
 -- XXX: That's one nasty instance...
 instance Num IVec2 where

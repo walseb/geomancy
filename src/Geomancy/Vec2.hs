@@ -1,6 +1,7 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
 
 -- | Specialized and inlined @V2 Float@.
@@ -21,6 +22,7 @@ module Geomancy.Vec2
   ) where
 
 import Control.DeepSeq (NFData(rnf))
+import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..))
 import qualified Data.VectorSpace as VectorSpace
@@ -51,6 +53,17 @@ fromTuple (x, y) = vec2 x y
 
 instance NFData Vec2 where
   rnf Vec2{} = ()
+
+type instance Element Vec2 = Float
+
+instance MonoFunctor Vec2 where
+  {-# INLINE omap #-}
+  omap f v =
+    withVec2 v \x y ->
+      vec2 (f x) (f y)
+
+instance MonoPointed Vec2 where
+  opoint x = vec2 x x
 
 instance Num Vec2 where
   {-# INLINE (+) #-}

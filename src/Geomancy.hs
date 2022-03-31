@@ -78,7 +78,6 @@ module Geomancy
   , (^*)
   , lerp
   , quadrance
-  ,
   ) where
 
 import Geomancy.Vec2 (Vec2, vec2, withVec2, pattern WithVec2)

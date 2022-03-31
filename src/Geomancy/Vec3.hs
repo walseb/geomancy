@@ -1,10 +1,12 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 -- | Specialized and inlined @V3 Float@.
 
@@ -24,12 +26,15 @@ module Geomancy.Vec3
   , dot
   , normalize
 
+  , hash33
+
   , Packed(..)
   , packed
   ) where
 
 import Control.DeepSeq (NFData(rnf))
 import Data.Coerce (Coercible, coerce)
+import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..), castPtr)
 import qualified Data.VectorSpace as VectorSpace
@@ -69,6 +74,17 @@ fromTuple (x, y, z) = coerce (vec3 x y z)
 
 instance NFData Vec3 where
   rnf Vec3{} = ()
+
+type instance Element Vec3 = Float
+
+instance MonoFunctor Vec3 where
+  {-# INLINE omap #-}
+  omap f v =
+    withVec3 v \x y z ->
+      vec3 (f x) (f y) (f z)
+
+instance MonoPointed Vec3 where
+  opoint x = vec3 x x x
 
 instance Num Vec3 where
   {-# INLINE (+) #-}
@@ -225,8 +241,11 @@ instance VectorSpace Vec3 Float where
 
 -- * Unpadded
 
+type instance Element Packed = Float
+
 newtype Packed = Packed { unPacked :: Vec3 }
-  deriving (Eq, Ord, Show, NFData, Num, Fractional)
+  deriving stock (Eq, Ord, Show)
+  deriving newtype (NFData, Num, Fractional, MonoFunctor, MonoPointed)
 
 {-# INLINE packed #-}
 packed :: Float -> Float -> Float -> Packed

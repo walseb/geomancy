@@ -1,7 +1,9 @@
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Geomancy.Point
   ( Point(..)
@@ -21,9 +23,10 @@ module Geomancy.Point
   , lerp
   ) where
 
-import Foreign.Storable (Storable)
 import Control.DeepSeq (NFData)
 import Data.AffineSpace (AffineSpace)
+import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
+import Foreign.Storable (Storable)
 import qualified Data.AffineSpace as AffineSpace
 
 import Geomancy.Vec2 (Vec2)
@@ -33,7 +36,10 @@ import Geomancy.Vector (VectorSpace(..))
 import qualified Geomancy.Vector as Vector
 
 newtype Point v = Point v
-  deriving (Eq, Ord, Show, Storable, NFData)
+  deriving stock (Eq, Ord, Show)
+  deriving newtype (NFData, Num, Fractional, MonoFunctor, MonoPointed, Storable)
+
+type instance Element (Point v) = Element v
 
 type Point2 = Point Vec2
 type Point3 = Point Vec3

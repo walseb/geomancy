@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c47c57e0b2996935a39027ff12994b4d3e78932214e44194b3576552e309a876
+-- hash: 452e5fa173509e98a1de90c13adb19d123a1a2821dc41d0a5586d0b4e6ba195d
 
 name:           geomancy
 version:        0.2.4.0
@@ -58,6 +58,7 @@ library
       base >=4.7 && <5
     , containers
     , deepseq
+    , mono-traversable
     , simple-affine-space
   default-language: Haskell2010
 

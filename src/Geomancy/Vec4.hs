@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -32,6 +33,7 @@ module Geomancy.Vec4
 import GHC.Exts hiding (VecCount(..), toList)
 
 import Control.DeepSeq (NFData(rnf))
+import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign (Storable(..))
 import GHC.IO (IO(..))
 -- import System.IO.Unsafe (unsafePerformIO)
@@ -122,6 +124,17 @@ fromTuple (x, y, z, w) = vec4 x y z w
 
 instance NFData Vec4 where
   rnf Vec4{} = ()
+
+type instance Element Vec4 = Float
+
+instance MonoFunctor Vec4 where
+  {-# INLINE omap #-}
+  omap f v =
+    withVec4 v \x y z w ->
+      vec4 (f x) (f y) (f z) (f w)
+
+instance MonoPointed Vec4 where
+  opoint x = vec4 x x x x
 
 instance Num Vec4 where
   {-# INLINE (+) #-}
