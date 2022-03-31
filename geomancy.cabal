@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 452e5fa173509e98a1de90c13adb19d123a1a2821dc41d0a5586d0b4e6ba195d
+-- hash: f843394bebcb08060fa4c672268221d8207e5c36e5f2f97cc38cbc39f22ac596
 
 name:           geomancy
 version:        0.2.4.0
@@ -35,6 +35,7 @@ library
       Geomancy.Mat4
       Geomancy.Point
       Geomancy.Quaternion
+      Geomancy.Swizzle
       Geomancy.Transform
       Geomancy.Transform.Tree
       Geomancy.Tree
