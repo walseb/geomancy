@@ -199,6 +199,32 @@ instance Fractional Vec4 where
     where
       x' = fromRational x
 
+instance Floating Vec4 where
+  pi = opoint pi
+
+  exp = omap exp
+  log = omap log
+  sqrt = omap sqrt
+  sin = omap sin
+  cos = omap cos
+  asin = omap asin
+  acos = omap acos
+  atan = omap atan
+  sinh = omap sinh
+  cosh = omap cosh
+  asinh = omap asinh
+  acosh = omap acosh
+  atanh = omap atanh
+
+  a ** b =
+    withVec4 a \ax ay az aw ->
+    withVec4 b \bx by bz bw ->
+      vec4
+        (ax ** bx)
+        (ay ** by)
+        (az ** bz)
+        (aw ** bw)
+
 instance Storable Vec4 where
   {-# INLINE sizeOf #-}
   sizeOf _ = 16

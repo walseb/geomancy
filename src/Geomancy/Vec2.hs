@@ -111,6 +111,30 @@ instance Fractional Vec2 where
     where
       x' = fromRational x
 
+instance Floating Vec2 where
+  pi = opoint pi
+
+  exp = omap exp
+  log = omap log
+  sqrt = omap sqrt
+  sin = omap sin
+  cos = omap cos
+  asin = omap asin
+  acos = omap acos
+  atan = omap atan
+  sinh = omap sinh
+  cosh = omap cosh
+  asinh = omap asinh
+  acosh = omap acosh
+  atanh = omap atanh
+
+  a ** b =
+    withVec2 a \ax ay ->
+    withVec2 b \bx by ->
+      vec2
+        (ax ** bx)
+        (ay ** by)
+
 {-# INLINE (^*) #-}
 (^*) :: Vec2 -> Float -> Vec2
 Vec2 a b ^* x =

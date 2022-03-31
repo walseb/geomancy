@@ -133,6 +133,31 @@ instance Fractional Vec3 where
     where
       x' = fromRational x
 
+instance Floating Vec3 where
+  pi = opoint pi
+
+  exp = omap exp
+  log = omap log
+  sqrt = omap sqrt
+  sin = omap sin
+  cos = omap cos
+  asin = omap asin
+  acos = omap acos
+  atan = omap atan
+  sinh = omap sinh
+  cosh = omap cosh
+  asinh = omap asinh
+  acosh = omap acosh
+  atanh = omap atanh
+
+  a ** b =
+    withVec3 a \ax ay az ->
+    withVec3 b \bx by bz ->
+      vec3
+        (ax ** bx)
+        (ay ** by)
+        (az ** bz)
+
 {-
   XXX: GPU layouts call for some padding.
 
@@ -243,7 +268,7 @@ type instance Element Packed = Float
 
 newtype Packed = Packed { unPacked :: Vec3 }
   deriving stock (Eq, Ord, Show)
-  deriving newtype (NFData, Num, Fractional, MonoFunctor, MonoPointed)
+  deriving newtype (NFData, Num, Fractional, Floating, MonoFunctor, MonoPointed)
 
 {-# INLINE packed #-}
 packed :: Float -> Float -> Float -> Packed
