@@ -26,8 +26,6 @@ module Geomancy.Vec3
   , dot
   , normalize
 
-  , hash33
-
   , Packed(..)
   , packed
   ) where
