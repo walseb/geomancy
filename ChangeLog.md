@@ -2,9 +2,15 @@
 
 ## 0.2.4.0
 
+A bunch of experimental code to see what sticks.
+
 + Added `simple-affine-space` instances.
   * The classes are re-exported from `Geomancy`, bringing stuff like `dot` and `normalize`.
-+ Added `Point2`, `Point3` wrappers.
++ Added `mono-traversable` instances and `Geomancy.Elementwise` wrapper.
++ Added `Point` wrapper and `PointN` aliases.
++ Added `Geomancy.Interpolate` with generic linear, quadratic and cubic functions.
++ Added `Geomancy.Swizzle` overloaded labels.
++ Added `Geomancy.Gl.Funs` with kinda-GLSL math functions, appropriately overloaded.
 
 ## 0.2.3.0
 
