@@ -2,6 +2,7 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnboxedTuples #-}
@@ -41,6 +42,7 @@ import Text.Printf (printf)
 
 import Geomancy.Vec2 (Vec2, withVec2)
 import Geomancy.Vec3 (Vec3, withVec3)
+import Geomancy.Gl.Funs
 
 data Vec4 = Vec4 ByteArray#
 
@@ -301,3 +303,89 @@ unsafeNewVec4 =
       !(# _world', arr #) = unsafeFreezeByteArray# arr_ world_
     in
       (# world, Vec4 arr #)
+
+instance GlClamp Vec4 Vec4 where
+  glMin v e =
+    withVec4 v \vx vy vz vw ->
+    withVec4 e \ex ey ez ew ->
+      vec4
+        (glMin vx ex)
+        (glMin vy ey)
+        (glMin vz ez)
+        (glMin vw ew)
+
+  glMax v e =
+    withVec4 v \vx vy vz vw ->
+    withVec4 e \ex ey ez ew ->
+      vec4
+        (glMax vx ex)
+        (glMax vy ey)
+        (glMax vz ez)
+        (glMax vw ew)
+
+instance GlClamp Float Vec4 where
+  glMin v e = omap (min e) v
+  glMax v e = omap (max e) v
+
+instance GlStep Vec4 Vec4 where
+  glStep edge v =
+    withVec4 edge \ex ey ez ew ->
+    withVec4 v \vx vy vz vw ->
+      vec4
+        (glStep ex vx)
+        (glStep ey vy)
+        (glStep ez vz)
+        (glStep ew vw)
+
+  glSmoothstep edge0 edge1 v =
+    withVec4 edge0 \e0x e0y e0z e0w ->
+    withVec4 edge1 \e1x e1y e1z e1w ->
+    withVec4 v \vx vy vz vw ->
+      vec4
+        (glSmoothstep e0x e1x vx)
+        (glSmoothstep e0y e1y vy)
+        (glSmoothstep e0z e1z vz)
+        (glSmoothstep e0w e1w vw)
+
+  glSmootherstep edge0 edge1 v =
+    withVec4 edge0 \e0x e0y e0z e0w ->
+    withVec4 edge1 \e1x e1y e1z e1w ->
+    withVec4 v \vx vy vz vw ->
+      vec4
+        (glSmootherstep e0x e1x vx)
+        (glSmootherstep e0y e1y vy)
+        (glSmootherstep e0z e1z vz)
+        (glSmootherstep e0w e1w vw)
+
+instance GlNearest Vec4 where
+  glCeil  = omap glCeil
+  glFloor = omap glFloor
+  glRound = omap glRound
+  glTrunc = omap glTrunc
+
+instance GlModf Vec4 Vec4 where
+  glModf v =
+    withVec4 v \vx vy vz vw ->
+      let
+        (xi, xf) = glModf vx
+        (yi, yf) = glModf vy
+        (zi, zf) = glModf vz
+        (wi, wf) = glModf vw
+      in
+        ( vec4 (fromInteger xi) (fromInteger yi) (fromInteger zi) (fromInteger wi)
+        , vec4 xf yf zf wf
+        )
+
+instance GlMix Float Vec4 where
+  glMix a b t = lerp t a b
+
+instance GlMix Vec4 Vec4 where
+  glMix a b t =
+    withVec4 a \ax ay az aw ->
+    withVec4 b \bx by bz bw ->
+    withVec4 t \tx ty tz tw ->
+      vec4
+        (glMix ax bx tx)
+        (glMix ay by ty)
+        (glMix az bz tz)
+        (glMix aw bw tw)

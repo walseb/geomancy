@@ -27,6 +27,8 @@ import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..))
 import qualified Data.VectorSpace as VectorSpace
 
+import Geomancy.Gl.Funs
+
 data Vec2 = Vec2
   {-# UNPACK #-} !Float
   {-# UNPACK #-} !Float
@@ -216,3 +218,75 @@ instance VectorSpace Vec2 Float where
 
   {-# INLINE normalize #-}
   normalize = Geomancy.Vec2.normalize
+
+instance GlClamp Vec2 Vec2 where
+  glMin v e =
+    withVec2 v \vx vy ->
+    withVec2 e \ex ey ->
+      vec2
+        (glMin vx ex)
+        (glMin vy ey)
+
+  glMax v e =
+    withVec2 v \vx vy ->
+    withVec2 e \ex ey ->
+      vec2
+        (glMax vx ex)
+        (glMax vy ey)
+
+instance GlClamp Float Vec2 where
+  glMin v e = omap (min e) v
+  glMax v e = omap (max e) v
+
+instance GlStep Vec2 Vec2 where
+  glStep edge v =
+    withVec2 edge \ex ey ->
+    withVec2 v \vx vy ->
+      vec2
+        (glStep ex vx)
+        (glStep ey vy)
+
+  glSmoothstep edge0 edge1 v =
+    withVec2 edge0 \e0x e0y ->
+    withVec2 edge1 \e1x e1y ->
+    withVec2 v \vx vy ->
+      vec2
+        (glSmoothstep e0x e1x vx)
+        (glSmoothstep e0y e1y vy)
+
+  glSmootherstep edge0 edge1 v =
+    withVec2 edge0 \e0x e0y ->
+    withVec2 edge1 \e1x e1y ->
+    withVec2 v \vx vy ->
+      vec2
+        (glSmootherstep e0x e1x vx)
+        (glSmootherstep e0y e1y vy)
+
+instance GlNearest Vec2 where
+  glCeil  = omap glCeil
+  glFloor = omap glFloor
+  glRound = omap glRound
+  glTrunc = omap glTrunc
+
+instance GlModf Vec2 Vec2 where
+  glModf v =
+    withVec2 v \vx vy ->
+      let
+        (xi, xf) = glModf vx
+        (yi, yf) = glModf vy
+      in
+        ( vec2 (fromInteger xi) (fromInteger yi)
+        , vec2 xf yf
+        )
+
+instance GlMix Float Vec2 where
+  glMix a b t = lerp t a b
+
+instance GlMix Vec2 Vec2 where
+  glMix a b t =
+    withVec2 a \ax ay ->
+    withVec2 b \bx by ->
+    withVec2 t \tx ty ->
+      vec2
+        (glMix ax bx tx)
+        (glMix ay by ty)

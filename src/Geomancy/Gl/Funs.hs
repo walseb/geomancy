@@ -5,24 +5,24 @@
 
 module Geomancy.Gl.Funs where
 
-class GlClamp x val where
-  glMin :: x -> val -> x
-  glMax :: x -> val -> x
-  glClamp :: x -> val -> val -> x
+class GlClamp edge a where
+  glMin :: a -> edge -> a
+  glMax :: a -> edge -> a
+  glClamp :: a -> edge -> edge -> a
 
   glClamp x minVal = glMin (glMax x minVal)
 
-glSaturate :: forall x . (GlClamp x x, Num x) => x -> x
-glSaturate x = glClamp @_ @x x 0 1
+glSaturate :: forall a . (GlClamp a a, Num a) => a -> a
+glSaturate x = glClamp @a x 0 1
 
 instance GlClamp Float Float where
   glMin = min
   glMax = max
 
-class GlClamp edge x => GlStep edge x where
-  glStep :: edge -> x -> x
-  glSmoothstep :: edge -> edge -> x -> x
-  glSmootherstep :: edge -> edge -> x -> x
+class GlClamp edge a => GlStep edge a where
+  glStep :: edge -> a -> a
+  glSmoothstep :: edge -> edge -> a -> a
+  glSmootherstep :: edge -> edge -> a -> a
 
 instance GlStep Float Float where
   {-# INLINE glStep #-}
@@ -86,6 +86,12 @@ instance GlModf Integer Float where
     in
       (integral, x - fromIntegral integral)
 
+instance GlModf Float Float where
+  {-# INLINE glModf #-}
+  glModf x = (fromInteger i, f)
+    where
+      (i, f) = glModf x
+
 class GlMod x y where
   glMod :: x -> y -> x
 
@@ -93,8 +99,8 @@ instance GlMod Float Float where
   {-# INLINE glMod #-}
   glMod x y = x - y * glFloor (x / y)
 
-class GlMix alpha x where
-  glMix :: x -> x -> alpha -> x
+class GlMix alpha a where
+  glMix :: a -> a -> alpha -> a
 
 instance GlMix Float Float where
   {-# INLINE glMix #-}
