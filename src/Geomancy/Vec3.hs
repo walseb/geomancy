@@ -28,6 +28,10 @@ module Geomancy.Vec3
 
   , Packed(..)
   , packed
+
+  , emap2
+  , emap3
+  , emap4
   ) where
 
 import Control.DeepSeq (NFData(rnf))
@@ -39,6 +43,7 @@ import qualified Data.VectorSpace as VectorSpace
 
 import Geomancy.Vec2 (Vec2, withVec2)
 import Geomancy.Gl.Funs
+import Geomancy.Elementwise (Elementwise(..))
 
 data Vec3 = Vec3
   {-# UNPACK #-} !Float
@@ -84,6 +89,49 @@ instance MonoFunctor Vec3 where
 
 instance MonoPointed Vec3 where
   opoint x = vec3 x x x
+
+instance Elementwise Vec3 where
+  {-# INLINE emap2 #-}
+  emap2 f p0 p1 =
+    withVec3 p0 \x0 y0 z0 ->
+    withVec3 p1 \x1 y1 z1 ->
+      vec3
+        (f x0 x1)
+        (f y0 y1)
+        (f z0 z1)
+
+  {-# INLINE emap3 #-}
+  emap3 f p0 p1 p2 =
+    withVec3 p0 \x0 y0 z0 ->
+    withVec3 p1 \x1 y1 z1 ->
+    withVec3 p2 \x2 y2 z2 ->
+      vec3
+        (f x0 x1 x2)
+        (f y0 y1 y2)
+        (f z0 z1 z2)
+
+  {-# INLINE emap4 #-}
+  emap4 f p0 p1 p2 p3 =
+    withVec3 p0 \x0 y0 z0 ->
+    withVec3 p1 \x1 y1 z1 ->
+    withVec3 p2 \x2 y2 z2 ->
+    withVec3 p3 \x3 y3 z3 ->
+      vec3
+        (f x0 x1 x2 x3)
+        (f y0 y1 y2 y3)
+        (f z0 z1 z2 z3)
+
+  {-# INLINE emap5 #-}
+  emap5 f p0 p1 p2 p3 p4 =
+    withVec3 p0 \x0 y0 z0 ->
+    withVec3 p1 \x1 y1 z1 ->
+    withVec3 p2 \x2 y2 z2 ->
+    withVec3 p3 \x3 y3 z3 ->
+    withVec3 p4 \x4 y4 z4 ->
+      vec3
+        (f x0 x1 x2 x3 x4)
+        (f y0 y1 y2 y3 y4)
+        (f z0 z1 z2 z3 z4)
 
 instance Num Vec3 where
   {-# INLINE (+) #-}
@@ -243,19 +291,19 @@ instance VectorSpace Vec3 Float where
   zeroVector = 0
 
   {-# INLINE (*^) #-}
-  a *^ v = v Geomancy.Vec3.^* a
+  (*^) = flip (Geomancy.Vec3.^*)
 
   {-# INLINE (^/) #-}
-  v ^/ a = v Geomancy.Vec3.^/ a
+  (^/) = (Geomancy.Vec3.^/)
 
   {-# INLINE (^+^) #-}
-  v1 ^+^ v2 = v1 + v2
+  (^+^) = emap2 (+)
 
   {-# INLINE (^-^) #-}
-  v1 ^-^ v2 = v1 - v2
+  (^-^) = emap2 (-)
 
   {-# INLINE negateVector #-}
-  negateVector v = -v
+  negateVector = omap negate
 
   {-# INLINE dot #-}
   dot = Geomancy.Vec3.dot
@@ -268,8 +316,14 @@ instance VectorSpace Vec3 Float where
 type instance Element Packed = Float
 
 newtype Packed = Packed { unPacked :: Vec3 }
-  deriving stock (Eq, Ord, Show)
-  deriving newtype (NFData, Num, Fractional, Floating, MonoFunctor, MonoPointed)
+  deriving stock
+    ( Eq, Ord, Show
+    )
+  deriving newtype
+    ( NFData, Num, Fractional, Floating
+    , MonoFunctor, MonoPointed
+    , Elementwise
+    )
 
 {-# INLINE packed #-}
 packed :: Float -> Float -> Float -> Packed
@@ -323,59 +377,7 @@ instance VectorSpace Packed Float where
   {-# INLINE normalize #-}
   normalize = coerce Geomancy.Vec3.normalize
 
-instance GlClamp Vec3 Vec3 where
-  glMin v e =
-    withVec3 v \vx vy vz ->
-    withVec3 e \ex ey ez ->
-      vec3
-        (glMin vx ex)
-        (glMin vy ey)
-        (glMin vz ez)
-
-  glMax v e =
-    withVec3 v \vx vy vz ->
-    withVec3 e \ex ey ez ->
-      vec3
-        (glMax vx ex)
-        (glMax vy ey)
-        (glMin vz ez)
-
-instance GlClamp Float Vec3 where
-  glMin v e = omap (min e) v
-  glMax v e = omap (max e) v
-
-instance GlStep Vec3 Vec3 where
-  glStep edge v =
-    withVec3 edge \ex ey ez ->
-    withVec3 v \vx vy vz ->
-      vec3
-        (glStep ex vx)
-        (glStep ey vy)
-        (glStep ez vz)
-
-  glSmoothstep edge0 edge1 v =
-    withVec3 edge0 \e0x e0y e0z ->
-    withVec3 edge1 \e1x e1y e1z ->
-    withVec3 v \vx vy vz ->
-      vec3
-        (glSmoothstep e0x e1x vx)
-        (glSmoothstep e0y e1y vy)
-        (glSmoothstep e0z e1z vz)
-
-  glSmootherstep edge0 edge1 v =
-    withVec3 edge0 \e0x e0y e0z ->
-    withVec3 edge1 \e1x e1y e1z ->
-    withVec3 v \vx vy vz ->
-      vec3
-        (glSmootherstep e0x e1x vx)
-        (glSmootherstep e0y e1y vy)
-        (glSmootherstep e0z e1z vz)
-
-instance GlNearest Vec3 where
-  glCeil  = omap glCeil
-  glFloor = omap glFloor
-  glRound = omap glRound
-  glTrunc = omap glTrunc
+instance GlNearest Vec3
 
 instance GlModf Vec3 Vec3 where
   glModf v =
@@ -388,16 +390,3 @@ instance GlModf Vec3 Vec3 where
         ( vec3 (fromInteger xi) (fromInteger yi) (fromInteger zi)
         , vec3 xf yf zf
         )
-
-instance GlMix Float Vec3 where
-  glMix a b t = lerp t a b
-
-instance GlMix Vec3 Vec3 where
-  glMix a b t =
-    withVec3 a \ax ay az ->
-    withVec3 b \bx by bz ->
-    withVec3 t \tx ty tz ->
-      vec3
-        (glMix ax bx tx)
-        (glMix ay by ty)
-        (glMix az bz tz)

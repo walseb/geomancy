@@ -18,6 +18,8 @@ import Data.Int (Int32)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign (Storable(..))
 
+import Geomancy.Elementwise (Elementwise(..))
+
 data IVec2 = IVec2
   {-# UNPACK #-} !Int32
   {-# UNPACK #-} !Int32
@@ -56,6 +58,45 @@ instance MonoFunctor IVec2 where
 instance MonoPointed IVec2 where
   {-# INLINE opoint #-}
   opoint x = ivec2 x x
+
+instance Elementwise IVec2 where
+  {-# INLINE emap2 #-}
+  emap2 f p0 p1 =
+    withIVec2 p0 \x0 y0 ->
+    withIVec2 p1 \x1 y1 ->
+      ivec2
+        (f x0 x1)
+        (f y0 y1)
+
+  {-# INLINE emap3 #-}
+  emap3 f p0 p1 p2 =
+    withIVec2 p0 \x0 y0 ->
+    withIVec2 p1 \x1 y1 ->
+    withIVec2 p2 \x2 y2 ->
+      ivec2
+        (f x0 x1 x2)
+        (f y0 y1 y2)
+
+  {-# INLINE emap4 #-}
+  emap4 f p0 p1 p2 p3 =
+    withIVec2 p0 \x0 y0 ->
+    withIVec2 p1 \x1 y1 ->
+    withIVec2 p2 \x2 y2 ->
+    withIVec2 p3 \x3 y3 ->
+      ivec2
+        (f x0 x1 x2 x3)
+        (f y0 y1 y2 y3)
+
+  {-# INLINE emap5 #-}
+  emap5 f p0 p1 p2 p3 p4 =
+    withIVec2 p0 \x0 y0 ->
+    withIVec2 p1 \x1 y1 ->
+    withIVec2 p2 \x2 y2 ->
+    withIVec2 p3 \x3 y3 ->
+    withIVec2 p4 \x4 y4 ->
+      ivec2
+        (f x0 x1 x2 x3 x4)
+        (f y0 y1 y2 y3 y4)
 
 -- XXX: That's one nasty instance...
 instance Num IVec2 where

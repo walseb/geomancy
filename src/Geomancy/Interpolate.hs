@@ -5,36 +5,33 @@
 {-# LANGUAGE PolyKinds #-}
 
 module Geomancy.Interpolate
-  ( linearV
-  , linearF
+  ( linear
+  , linearE
   , b1
 
-  , quadraticV
-  , quadraticF
+  , quadratic
+  , quadraticE
   , b2
 
-  , cubicV
-  , cubicF
+  , cubic
+  , cubicE
   , b3
   ) where
 
-import Geomancy.Vector (VectorSpace, (^*), (^+^))
+import Data.VectorSpace (VectorSpace, (*^), (^+^))
+import Geomancy.Elementwise (Element, Elementwise(..))
 
-{-# INLINEABLE linearV #-}
-linearV :: VectorSpace v a => v -> v -> a -> v
-linearV p0 p1 t =
-  p0 ^* b01 ^+^
-  p1 ^* b11
+{-# INLINEABLE linear #-}
+linear :: VectorSpace v a => v -> v -> a -> v
+linear p0 p1 t =
+  b01 *^ p0 ^+^
+  b11 *^ p1
   where
     (b01, b11) = b1 t
 
-{-# INLINEABLE linearF #-}
-linearF :: Float -> Float -> Float -> Float
-linearF p0 p1 t =
-  p0 ^* b01 ^+^
-  p1 ^* b11
-  where
-    (b01, b11) = b1 t
+{-# INLINEABLE linearE #-}
+linearE :: (Elementwise v, Element v ~ Float) => v -> v -> v -> v
+linearE = emap3 linear
 
 {-# INLINE b1 #-}
 b1 :: Num b => b -> (b, b)
@@ -43,23 +40,18 @@ b1 t =
   , t
   )
 
-{-# INLINEABLE quadraticV #-}
-quadraticV :: VectorSpace v a => v -> v -> v -> a -> v
-quadraticV p0 p1 p2 t =
-  p0 ^* b02 ^+^
-  p1 ^* b12 ^+^
-  p2 ^* b22
+{-# INLINEABLE quadratic #-}
+quadratic :: VectorSpace v a => v -> v -> v -> a -> v
+quadratic p0 p1 p2 t =
+  b02 *^ p0 ^+^
+  b12 *^ p1 ^+^
+  b22 *^ p2
   where
     (b02, b12, b22) = b2 t
 
-{-# INLINEABLE quadraticF #-}
-quadraticF :: Float -> Float -> Float -> Float -> Float
-quadraticF p0 p1 p2 t =
-  p0 * b02 +
-  p1 * b12 +
-  p2 * b22
-  where
-    (b02, b12, b22) = b2 t
+{-# INLINEABLE quadraticE #-}
+quadraticE :: (Elementwise v, Element v ~ Float) => v -> v -> v -> v -> v
+quadraticE = emap4 quadratic
 
 {-# INLINE b2 #-}
 b2 :: Num c => c -> (c, c, c)
@@ -74,25 +66,19 @@ b2 t =
   , t * t
   )
 
-{-# INLINEABLE cubicV #-}
-cubicV :: VectorSpace v a => v -> v -> v -> v -> a -> v
-cubicV p0 p1 p2 p3 t =
-  p0 ^* b03 ^+^
-  p1 ^* b13 ^+^
-  p2 ^* b23 ^+^
-  p3 ^* b33
+{-# INLINEABLE cubic #-}
+cubic :: VectorSpace v a => v -> v -> v -> v -> a -> v
+cubic p0 p1 p2 p3 t =
+  b03 *^ p0 ^+^
+  b13 *^ p1 ^+^
+  b23 *^ p2 ^+^
+  b33 *^ p3
   where
     (b03, b13, b23, b33) = b3 t
 
-{-# INLINEABLE cubicF #-}
-cubicF :: Float -> Float -> Float -> Float -> Float -> Float
-cubicF p0 p1 p2 p3 t =
-  p0 * b03 +
-  p1 * b13 +
-  p2 * b23 +
-  p3 * b33
-  where
-    (b03, b13, b23, b33) = b3 t
+{-# INLINEABLE cubicE #-}
+cubicE :: (Elementwise v, Element v ~ Float) => v -> v -> v -> v -> v -> v
+cubicE = emap5 cubic
 
 {-# INLINE b3 #-}
 b3 :: Num d => d -> (d, d, d, d)

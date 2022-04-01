@@ -9,6 +9,7 @@ module Geomancy.Vector
   ) where
 
 import Data.VectorSpace (VectorSpace(..))
+import Geomancy.Interpolate (linear)
 
 {-# INLINE (^*) #-}
 (^*) :: VectorSpace v a => v -> a -> v
@@ -20,7 +21,7 @@ quadrance v = dot v v
 
 {-# INLINE lerp #-}
 lerp :: VectorSpace v a => v -> v -> a -> v
-lerp a b t = a ^* t ^+^ b ^* (1 - t)
+lerp = linear
 
 {-# INLINE lerpClip #-}
 lerpClip :: (VectorSpace v a, Ord a) => v -> v -> a -> v

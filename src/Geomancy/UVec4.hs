@@ -18,6 +18,8 @@ import Data.Word (Word32)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign (Storable(..))
 
+import Geomancy.Elementwise (Elementwise(..))
+
 data UVec4 = UVec4
   {-# UNPACK #-} !Word32
   {-# UNPACK #-} !Word32
@@ -58,6 +60,53 @@ instance MonoFunctor UVec4 where
 instance MonoPointed UVec4 where
   {-# INLINE opoint #-}
   opoint x = uvec4 x x x x
+
+instance Elementwise UVec4 where
+  {-# INLINE emap2 #-}
+  emap2 f p0 p1 =
+    withUVec4 p0 \x0 y0 z0 w0 ->
+    withUVec4 p1 \x1 y1 z1 w1 ->
+      uvec4
+        (f x0 x1)
+        (f y0 y1)
+        (f z0 z1)
+        (f w0 w1)
+
+  {-# INLINE emap3 #-}
+  emap3 f p0 p1 p2 =
+    withUVec4 p0 \x0 y0 z0 w0 ->
+    withUVec4 p1 \x1 y1 z1 w1 ->
+    withUVec4 p2 \x2 y2 z2 w2 ->
+      uvec4
+        (f x0 x1 x2)
+        (f y0 y1 y2)
+        (f z0 z1 z2)
+        (f w0 w1 w2)
+
+  {-# INLINE emap4 #-}
+  emap4 f p0 p1 p2 p3 =
+    withUVec4 p0 \x0 y0 z0 w0 ->
+    withUVec4 p1 \x1 y1 z1 w1 ->
+    withUVec4 p2 \x2 y2 z2 w2 ->
+    withUVec4 p3 \x3 y3 z3 w3 ->
+      uvec4
+        (f x0 x1 x2 x3)
+        (f y0 y1 y2 y3)
+        (f z0 z1 z2 z3)
+        (f w0 w1 w2 w3)
+
+  {-# INLINE emap5 #-}
+  emap5 f p0 p1 p2 p3 p4 =
+    withUVec4 p0 \x0 y0 z0 w0 ->
+    withUVec4 p1 \x1 y1 z1 w1 ->
+    withUVec4 p2 \x2 y2 z2 w2 ->
+    withUVec4 p3 \x3 y3 z3 w3 ->
+    withUVec4 p4 \x4 y4 z4 w4 ->
+      uvec4
+        (f x0 x1 x2 x3 x4)
+        (f y0 y1 y2 y3 y4)
+        (f z0 z1 z2 z3 z4)
+        (f w0 w1 w2 w3 w4)
 
 -- XXX: That's another nasty instance...
 instance Num UVec4 where

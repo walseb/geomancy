@@ -28,6 +28,7 @@ import Foreign (Storable(..))
 import qualified Data.VectorSpace as VectorSpace
 
 import Geomancy.Gl.Funs
+import Geomancy.Elementwise (Elementwise(..))
 
 data Vec2 = Vec2
   {-# UNPACK #-} !Float
@@ -66,6 +67,45 @@ instance MonoFunctor Vec2 where
 
 instance MonoPointed Vec2 where
   opoint x = vec2 x x
+
+instance Elementwise Vec2 where
+  {-# INLINE emap2 #-}
+  emap2 f p0 p1 =
+    withVec2 p0 \x0 y0 ->
+    withVec2 p1 \x1 y1 ->
+      vec2
+        (f x0 x1)
+        (f y0 y1)
+
+  {-# INLINE emap3 #-}
+  emap3 f p0 p1 p2 =
+    withVec2 p0 \x0 y0 ->
+    withVec2 p1 \x1 y1 ->
+    withVec2 p2 \x2 y2 ->
+      vec2
+        (f x0 x1 x2)
+        (f y0 y1 y2)
+
+  {-# INLINE emap4 #-}
+  emap4 f p0 p1 p2 p3 =
+    withVec2 p0 \x0 y0 ->
+    withVec2 p1 \x1 y1 ->
+    withVec2 p2 \x2 y2 ->
+    withVec2 p3 \x3 y3 ->
+      vec2
+        (f x0 x1 x2 x3)
+        (f y0 y1 y2 y3)
+
+  {-# INLINE emap5 #-}
+  emap5 f p0 p1 p2 p3 p4 =
+    withVec2 p0 \x0 y0 ->
+    withVec2 p1 \x1 y1 ->
+    withVec2 p2 \x2 y2 ->
+    withVec2 p3 \x3 y3 ->
+    withVec2 p4 \x4 y4 ->
+      vec2
+        (f x0 x1 x2 x3 x4)
+        (f y0 y1 y2 y3 y4)
 
 instance Num Vec2 where
   {-# INLINE (+) #-}
@@ -130,12 +170,7 @@ instance Floating Vec2 where
   acosh = omap acosh
   atanh = omap atanh
 
-  a ** b =
-    withVec2 a \ax ay ->
-    withVec2 b \bx by ->
-      vec2
-        (ax ** bx)
-        (ay ** by)
+  (**) = emap2 (**)
 
 {-# INLINE (^*) #-}
 (^*) :: Vec2 -> Float -> Vec2
@@ -219,54 +254,7 @@ instance VectorSpace Vec2 Float where
   {-# INLINE normalize #-}
   normalize = Geomancy.Vec2.normalize
 
-instance GlClamp Vec2 Vec2 where
-  glMin v e =
-    withVec2 v \vx vy ->
-    withVec2 e \ex ey ->
-      vec2
-        (glMin vx ex)
-        (glMin vy ey)
-
-  glMax v e =
-    withVec2 v \vx vy ->
-    withVec2 e \ex ey ->
-      vec2
-        (glMax vx ex)
-        (glMax vy ey)
-
-instance GlClamp Float Vec2 where
-  glMin v e = omap (min e) v
-  glMax v e = omap (max e) v
-
-instance GlStep Vec2 Vec2 where
-  glStep edge v =
-    withVec2 edge \ex ey ->
-    withVec2 v \vx vy ->
-      vec2
-        (glStep ex vx)
-        (glStep ey vy)
-
-  glSmoothstep edge0 edge1 v =
-    withVec2 edge0 \e0x e0y ->
-    withVec2 edge1 \e1x e1y ->
-    withVec2 v \vx vy ->
-      vec2
-        (glSmoothstep e0x e1x vx)
-        (glSmoothstep e0y e1y vy)
-
-  glSmootherstep edge0 edge1 v =
-    withVec2 edge0 \e0x e0y ->
-    withVec2 edge1 \e1x e1y ->
-    withVec2 v \vx vy ->
-      vec2
-        (glSmootherstep e0x e1x vx)
-        (glSmootherstep e0y e1y vy)
-
-instance GlNearest Vec2 where
-  glCeil  = omap glCeil
-  glFloor = omap glFloor
-  glRound = omap glRound
-  glTrunc = omap glTrunc
+instance GlNearest Vec2
 
 instance GlModf Vec2 Vec2 where
   glModf v =
@@ -278,15 +266,3 @@ instance GlModf Vec2 Vec2 where
         ( vec2 (fromInteger xi) (fromInteger yi)
         , vec2 xf yf
         )
-
-instance GlMix Float Vec2 where
-  glMix a b t = lerp t a b
-
-instance GlMix Vec2 Vec2 where
-  glMix a b t =
-    withVec2 a \ax ay ->
-    withVec2 b \bx by ->
-    withVec2 t \tx ty ->
-      vec2
-        (glMix ax bx tx)
-        (glMix ay by ty)
