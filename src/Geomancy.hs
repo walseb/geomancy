@@ -59,6 +59,10 @@ module Geomancy
   , withUVec4
   , pattern WithUVec4
 
+  -- ** Generic maps
+
+  , Elementwise(..)
+
   -- * Matrices
 
   , Mat4
@@ -91,6 +95,8 @@ import Geomancy.IVec4 (IVec4, ivec4, withIVec4, pattern WithIVec4)
 import Geomancy.UVec2 (UVec2, uvec2, withUVec2, pattern WithUVec2)
 import Geomancy.UVec3 (UVec3, uvec3, withUVec3, pattern WithUVec3)
 import Geomancy.UVec4 (UVec4, uvec4, withUVec4, pattern WithUVec4)
+
+import Geomancy.Elementwise (Elementwise(..))
 
 import Geomancy.Mat4 (Mat4)
 import Geomancy.Transform (Transform(..))
