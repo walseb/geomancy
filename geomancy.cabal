@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0354af531e4620ac11fcb7ffe90cb83dbe3c3411e86538843168e29c74f54944
+-- hash: 66e9798c326e2e9f3295d3125a7c59f8db2346c5da9e16fcd7e319b76a5497b9
 
 name:           geomancy
 version:        0.2.4.0
@@ -30,6 +30,7 @@ library
   exposed-modules:
       Geomancy
       Geomancy.Gl.Funs
+      Geomancy.Interpolate
       Geomancy.IVec2
       Geomancy.IVec3
       Geomancy.IVec4
