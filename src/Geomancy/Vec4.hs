@@ -35,13 +35,14 @@ import GHC.Exts hiding (VecCount(..), toList)
 
 import Control.DeepSeq (NFData(rnf))
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
+import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..))
 import GHC.IO (IO(..))
--- import System.IO.Unsafe (unsafePerformIO)
 import Text.Printf (printf)
+import qualified Data.VectorSpace as VectorSpace
 
 import Geomancy.Elementwise (Elementwise(..))
-import Geomancy.Gl.Funs
+import Geomancy.Gl.Funs (GlModf(..), GlNearest)
 import Geomancy.Vec2 (Vec2, withVec2)
 import Geomancy.Vec3 (Vec3, withVec3)
 
@@ -297,6 +298,30 @@ instance Storable Vec4 where
       !(# world', arr' #) = unsafeFreezeByteArray# arr world1
     in
       (# world', Vec4 arr' #)
+
+instance VectorSpace Vec4 Float where
+  zeroVector = epoint 0
+
+  {-# INLINE (*^) #-}
+  (*^) = flip (Geomancy.Vec4.^*)
+
+  {-# INLINE (^/) #-}
+  (^/) = (Geomancy.Vec4.^/)
+
+  {-# INLINE (^+^) #-}
+  (^+^) = emap2 (+)
+
+  {-# INLINE (^-^) #-}
+  (^-^) = emap2 (-)
+
+  {-# INLINE negateVector #-}
+  negateVector = emap negate
+
+  {-# INLINE dot #-}
+  dot = Geomancy.Vec4.dot
+
+  {-# INLINE normalize #-}
+  normalize = Geomancy.Vec4.normalize
 
 -- TODO: SIMD
 {-# INLINE (^*) #-}
