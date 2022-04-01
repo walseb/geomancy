@@ -9,6 +9,7 @@ A bunch of experimental code to see what sticks.
 + Added `mono-traversable` instances and `Geomancy.Elementwise` wrapper.
 + Added `Point` wrapper and `PointN` aliases.
 + Added `Geomancy.Interpolate` with generic linear, quadratic and cubic functions.
+  - ⚠️ `VecN.lerp` has wrong (flipped) order of vector arguments. This is fixed in `linear`.
 + Added `Geomancy.Swizzle` overloaded labels.
 + Added `Geomancy.Gl.Funs` with kinda-GLSL math functions, appropriately overloaded.
 
