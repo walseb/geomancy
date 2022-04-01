@@ -41,9 +41,9 @@ import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..), castPtr)
 import qualified Data.VectorSpace as VectorSpace
 
-import Geomancy.Vec2 (Vec2, withVec2)
-import Geomancy.Gl.Funs
 import Geomancy.Elementwise (Elementwise(..))
+import Geomancy.Gl.Funs (GlModf(..), GlNearest)
+import Geomancy.Vec2 (Vec2, withVec2)
 
 data Vec3 = Vec3
   {-# UNPACK #-} !Float
@@ -288,7 +288,7 @@ normalize v =
     nearZero a = abs a <= 1e-6
 
 instance VectorSpace Vec3 Float where
-  zeroVector = 0
+  zeroVector = epoint 0
 
   {-# INLINE (*^) #-}
   (*^) = flip (Geomancy.Vec3.^*)
@@ -303,7 +303,7 @@ instance VectorSpace Vec3 Float where
   (^-^) = emap2 (-)
 
   {-# INLINE negateVector #-}
-  negateVector = omap negate
+  negateVector = emap negate
 
   {-# INLINE dot #-}
   dot = Geomancy.Vec3.dot
@@ -354,7 +354,7 @@ instance Storable Packed where
       ptr' = castPtr ptr
 
 instance VectorSpace Packed Float where
-  zeroVector = 0
+  zeroVector = epoint 0
 
   {-# INLINE (*^) #-}
   (*^) = flip $ coerce (Geomancy.Vec3.^*)
@@ -369,7 +369,7 @@ instance VectorSpace Packed Float where
   v1 ^-^ v2 = v1 - v2
 
   {-# INLINE negateVector #-}
-  negateVector v = -v
+  negateVector = emap negate
 
   {-# INLINE dot #-}
   dot = coerce Geomancy.Vec3.dot

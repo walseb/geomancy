@@ -27,8 +27,8 @@ import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..))
 import qualified Data.VectorSpace as VectorSpace
 
-import Geomancy.Gl.Funs
 import Geomancy.Elementwise (Elementwise(..))
+import Geomancy.Gl.Funs (GlModf(..), GlNearest)
 
 data Vec2 = Vec2
   {-# UNPACK #-} !Float
@@ -231,7 +231,7 @@ instance Storable Vec2 where
     <*> peekByteOff ptr 4
 
 instance VectorSpace Vec2 Float where
-  zeroVector = 0
+  zeroVector = epoint 0
 
   {-# INLINE (*^) #-}
   a *^ v = v Geomancy.Vec2.^* a
@@ -240,13 +240,13 @@ instance VectorSpace Vec2 Float where
   v ^/ a = v Geomancy.Vec2.^/ a
 
   {-# INLINE (^+^) #-}
-  v1 ^+^ v2 = v1 + v2
+  (^+^) = emap2 (+)
 
   {-# INLINE (^-^) #-}
-  v1 ^-^ v2 = v1 - v2
+  (^-^) = emap2 (-)
 
   {-# INLINE negateVector #-}
-  negateVector v = -v
+  negateVector = emap negate
 
   {-# INLINE dot #-}
   dot = Geomancy.Vec2.dot
