@@ -22,7 +22,7 @@ import Data.VectorSpace (VectorSpace, (*^), (^+^))
 import Geomancy.Elementwise (Element, Elementwise(..))
 
 {-# INLINEABLE linear #-}
-linear :: VectorSpace v a => v -> v -> a -> v
+linear :: (VectorSpace v a, Num a) => v -> v -> a -> v
 linear p0 p1 t =
   b01 *^ p0 ^+^
   b11 *^ p1
@@ -41,7 +41,7 @@ b1 t =
   )
 
 {-# INLINEABLE quadratic #-}
-quadratic :: VectorSpace v a => v -> v -> v -> a -> v
+quadratic :: (VectorSpace v a, Num a) => v -> v -> v -> a -> v
 quadratic p0 p1 p2 t =
   b02 *^ p0 ^+^
   b12 *^ p1 ^+^
@@ -67,7 +67,7 @@ b2 t =
   )
 
 {-# INLINEABLE cubic #-}
-cubic :: VectorSpace v a => v -> v -> v -> v -> a -> v
+cubic :: (VectorSpace v a, Num a) => v -> v -> v -> v -> a -> v
 cubic p0 p1 p2 p3 t =
   b03 *^ p0 ^+^
   b13 *^ p1 ^+^
