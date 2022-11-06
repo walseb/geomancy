@@ -20,11 +20,11 @@ quadrance :: VectorSpace v a => v -> a
 quadrance v = dot v v
 
 {-# INLINE lerp #-}
-lerp :: VectorSpace v a => v -> v -> a -> v
+lerp :: (VectorSpace v a, Num a) => v -> v -> a -> v
 lerp = linear
 
 {-# INLINE lerpClip #-}
-lerpClip :: (VectorSpace v a, Ord a) => v -> v -> a -> v
+lerpClip :: (VectorSpace v a, Ord a, Num a) => v -> v -> a -> v
 lerpClip a b t
   | t <= 0 = a
   | t >= 1 = b
