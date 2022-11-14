@@ -1,5 +1,9 @@
 # Changelog for geomancy
 
+## 0.2.4.1
+
+* Support simple-affine-space-0.2
+
 ## 0.2.4.0
 
 A bunch of experimental code to see what sticks.
