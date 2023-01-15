@@ -402,13 +402,13 @@ toList2dTrans = flip withMat4
 zipWith :: (Float -> Float -> c) -> Mat4 -> Mat4 -> [c]
 zipWith f a b = List.zipWith f (toList a) (toList b)
 
-foreign import ccall unsafe "Mat4xMat4_SSE" m4m4sse :: Addr# -> Addr# -> Addr# -> IO ()
+foreign import ccall unsafe "Mat4xMat4_SIMD" m4m4simd :: Addr# -> Addr# -> Addr# -> IO ()
 
 {-# INLINE matrixProduct #-}
 matrixProduct :: Mat4 -> Mat4 -> Mat4
 matrixProduct (Mat4 l) (Mat4 r) = unsafePerformIO do
   result@(Mat4 m) <- unsafeNewMat4
-  m4m4sse
+  m4m4simd
     (byteArrayContents# l)
     (byteArrayContents# r)
     (byteArrayContents# m)
@@ -438,13 +438,13 @@ scalarMultiply x m =
         (m02 * x) (m12 * x) (m22 * x) (m32 * x)
         (m03 * x) (m13 * x) (m23 * x) (m33 * x)
 
-foreign import ccall unsafe "Mat4xVec4_SSE" m4v4sse :: Addr# -> Addr# -> Addr# -> IO ()
+foreign import ccall unsafe "Mat4xVec4_SIMD" m4v4simd :: Addr# -> Addr# -> Addr# -> IO ()
 
 -- | Matrix - column vector multiplication
 (!*) :: Coercible a Mat4 => a -> Vec4 -> Vec4
 (!*) (coerce -> Mat4 m) (Vec4 v) = unsafePerformIO do
   result@(Vec4 o) <- unsafeNewVec4
-  m4v4sse
+  m4v4simd
     (byteArrayContents# m)
     (byteArrayContents# v)
     (byteArrayContents# o)
