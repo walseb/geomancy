@@ -39,7 +39,6 @@ applyWith
   -> Tree (acc, a)
 applyWith f = mapAccum next
   where
-    -- nextAcc = f ann acc
     next acc (ann, item) =
       let
         acc' = f ann acc

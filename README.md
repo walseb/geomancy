@@ -5,10 +5,14 @@
 * All data types are monomorphic, unpacked and specialized.
 * `Mat4` and `Vec4` are `ByteArray#`.
 * `Mat4`x`Mat4` and `Mat4`x`Vec4` is done with SIMD.
-* Matrix construction states their element order.
-* Transforms don't require transposition for GLSL `mat4`*`vec4`.
 
-### The Numbers
+## Matrix layout
+
+CPU-side matrices compose in MVP order, optimized for `mconcat (local1 : local2 : ... : root)` operation.
+
+GPU-side, in GLSL, it is `PVM * v`.
+
+## The Numbers
 
 Storing a list of 1000 transformations (e.g. rendering instance data):
 
