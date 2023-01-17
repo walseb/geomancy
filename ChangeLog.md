@@ -1,5 +1,9 @@
 # Changelog for geomancy
 
+## 0.2.4.2
+
+* Support ARM/aarch64 SIMD.
+
 ## 0.2.4.1
 
 * Support simple-affine-space-0.2

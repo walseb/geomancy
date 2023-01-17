@@ -1,12 +1,12 @@
 # Geomancy
 
-Linear is nice, but slow. Those are naughty, but a bit faster.
+> Linear is nice, but slow. Those are naughty, but a bit faster.
 
-* All data types are monomorphic, unpacked and specialized to `Float`.
-* `Mat4` is a `ByteArray#`.
-* `Mat4` multiplication with SSE.
+* All data types are monomorphic, unpacked and specialized.
+* `Mat4` and `Vec4` are `ByteArray#`.
+* `Mat4`x`Mat4` and `Mat4`x`Vec4` is done with SIMD.
 * Matrix construction states their element order.
-* Transforms don't require transposition for GLSL.
+* Transforms don't require transposition for GLSL `mat4`*`vec4`.
 
 ### The Numbers
 

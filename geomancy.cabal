@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c412ee063c335404b0a3d322adb6e19f362c3bfdedf86b7720b8fe6db4a7a741
+-- hash: 13d331028f6ae562f3d1e96d1909faf808cab9b792c467ef78c9d3fa8285c72e
 
 name:           geomancy
-version:        0.2.4.1
+version:        0.2.4.2
 synopsis:       Geometry and matrix manipulation
 description:    Sometimes it is unavoidable you have to do stuff on CPU.
                 Let's at least do it faster.
