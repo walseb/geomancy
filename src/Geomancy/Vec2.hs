@@ -25,9 +25,11 @@ import Control.DeepSeq (NFData(rnf))
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..))
+import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import qualified Data.VectorSpace as VectorSpace
 
 import Geomancy.Elementwise (Elementwise(..))
+import Geomancy.Gl.Block (Block(..))
 import Geomancy.Gl.Funs (GlModf(..), GlNearest)
 
 data Vec2 = Vec2
@@ -229,6 +231,32 @@ instance Storable Vec2 where
   peek ptr = vec2
     <$> peekByteOff ptr 0
     <*> peekByteOff ptr 4
+
+instance Block Vec2 where
+  sizeOfPacked _  = 8
+  alignment140 _  = 8
+  sizeOf140 _     = 8
+  alignment430    = alignment140
+  sizeOf430       = sizeOf140
+  isStruct _      = False
+  read140     = peekDiffOff
+  write140    = pokeDiffOff
+  read430     = read140
+  write430    = write140
+  readPacked  = read140
+  writePacked = write140
+  {-# INLINE sizeOfPacked #-}
+  {-# INLINE alignment140 #-}
+  {-# INLINE sizeOf140 #-}
+  {-# INLINE alignment430 #-}
+  {-# INLINE sizeOf430 #-}
+  {-# INLINE isStruct #-}
+  {-# INLINE read140 #-}
+  {-# INLINE write140 #-}
+  {-# INLINE read430 #-}
+  {-# INLINE write430 #-}
+  {-# INLINE readPacked #-}
+  {-# INLINE writePacked #-}
 
 instance VectorSpace Vec2 Float where
   zeroVector = epoint 0

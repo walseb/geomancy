@@ -38,6 +38,7 @@ import GHC.Exts hiding (VecCount(..), toList)
 
 import Control.DeepSeq (NFData(rnf))
 import Foreign (Storable(..))
+import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import GHC.IO (IO(..))
 import System.IO.Unsafe (unsafePerformIO)
 import Text.Printf (printf)
@@ -45,6 +46,7 @@ import Text.Printf (printf)
 import qualified Data.Foldable as Foldable
 import qualified Data.List as List
 
+import Geomancy.Gl.Block (Block(..))
 import Geomancy.Vec4 (Vec4(..), unsafeNewVec4)
 
 data Mat4 = Mat4 ByteArray#
@@ -506,3 +508,29 @@ instance Storable Mat4 where
       !(# world', arr' #) = unsafeFreezeByteArray# arr world1
     in
       (# world', Mat4 arr' #)
+
+instance Block Mat4 where
+  sizeOfPacked _  = 64
+  alignment140 _  = 16
+  sizeOf140       = sizeOfPacked
+  alignment430    = alignment140
+  sizeOf430       = sizeOf140
+  isStruct _      = False
+  read140     = peekDiffOff
+  write140    = pokeDiffOff
+  read430     = read140
+  write430    = write140
+  readPacked  = read140
+  writePacked = write140
+  {-# INLINE sizeOfPacked #-}
+  {-# INLINE alignment140 #-}
+  {-# INLINE sizeOf140 #-}
+  {-# INLINE alignment430 #-}
+  {-# INLINE sizeOf430 #-}
+  {-# INLINE isStruct #-}
+  {-# INLINE read140 #-}
+  {-# INLINE write140 #-}
+  {-# INLINE read430 #-}
+  {-# INLINE write430 #-}
+  {-# INLINE readPacked #-}
+  {-# INLINE writePacked #-}

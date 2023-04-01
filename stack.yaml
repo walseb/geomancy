@@ -3,6 +3,9 @@ resolver: https://gitlab.com/keid/meta/-/raw/main/resolvers/keid-engine-2022-11-
 packages:
 - .
 
+extra-deps:
+- ptrdiff-0
+
 system-ghc: true
 ghc-options:
   "$everything": -split-sections -j2

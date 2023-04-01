@@ -28,6 +28,7 @@ module Geomancy.Transform
   ) where
 
 import Foreign (Storable(..))
+import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 
 import Geomancy.Mat4 (Mat4, colMajor, inverse)
 import Geomancy.Quaternion (Quaternion, withQuaternion)
@@ -35,9 +36,36 @@ import Geomancy.Vec3 (Vec3, vec3, withVec3)
 import Geomancy.Vec4 (fromVec3, withVec4)
 
 import qualified Geomancy.Mat4 as Mat4
+import Geomancy.Gl.Block (Block(..))
 
 newtype Transform = Transform { unTransform :: Mat4 }
   deriving newtype (Show, Semigroup, Monoid, Storable)
+
+instance Block Transform where
+  sizeOfPacked _  = 64
+  alignment140 _  = 16
+  sizeOf140       = sizeOfPacked
+  alignment430    = alignment140
+  sizeOf430       = sizeOf140
+  isStruct _      = False
+  read140     = peekDiffOff
+  write140    = pokeDiffOff
+  read430     = read140
+  write430    = write140
+  readPacked  = read140
+  writePacked = write140
+  {-# INLINE sizeOfPacked #-}
+  {-# INLINE alignment140 #-}
+  {-# INLINE sizeOf140 #-}
+  {-# INLINE alignment430 #-}
+  {-# INLINE sizeOf430 #-}
+  {-# INLINE isStruct #-}
+  {-# INLINE read140 #-}
+  {-# INLINE write140 #-}
+  {-# INLINE read430 #-}
+  {-# INLINE write430 #-}
+  {-# INLINE readPacked #-}
+  {-# INLINE writePacked #-}
 
 -- | Apply transformation to a vector, then normalize with perspective division
 apply :: Vec3 -> Transform -> Vec3

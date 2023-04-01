@@ -1,5 +1,11 @@
 # Changelog for geomancy
 
+## 0.2.5.0
+
+* Added Geomancy.Gl.Block to derive packed/std140/std430 layouts generically.
+  Originally a part of the unpublished `glow` package in the `codex` project by Edward Kmett.
+  Add `ptrdiff-0` to your stack resolvers.
+
 ## 0.2.4.2
 
 * Support ARM/aarch64 SIMD.

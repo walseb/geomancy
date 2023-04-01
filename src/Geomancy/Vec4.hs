@@ -37,11 +37,13 @@ import Control.DeepSeq (NFData(rnf))
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..))
+import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import GHC.IO (IO(..))
 import Text.Printf (printf)
 import qualified Data.VectorSpace as VectorSpace
 
 import Geomancy.Elementwise (Elementwise(..))
+import Geomancy.Gl.Block (Block(..))
 import Geomancy.Gl.Funs (GlModf(..), GlNearest)
 import Geomancy.Vec2 (Vec2, withVec2)
 import Geomancy.Vec3 (Vec3, withVec3)
@@ -298,6 +300,32 @@ instance Storable Vec4 where
       !(# world', arr' #) = unsafeFreezeByteArray# arr world1
     in
       (# world', Vec4 arr' #)
+
+instance Block Vec4 where
+  sizeOfPacked _  = 16
+  alignment140 _  = 16
+  sizeOf140       = sizeOfPacked
+  alignment430    = alignment140
+  sizeOf430       = sizeOf140
+  isStruct _      = False
+  read140     = peekDiffOff
+  write140    = pokeDiffOff
+  read430     = read140
+  write430    = write140
+  readPacked  = read140
+  writePacked = write140
+  {-# INLINE sizeOfPacked #-}
+  {-# INLINE alignment140 #-}
+  {-# INLINE sizeOf140 #-}
+  {-# INLINE alignment430 #-}
+  {-# INLINE sizeOf430 #-}
+  {-# INLINE isStruct #-}
+  {-# INLINE read140 #-}
+  {-# INLINE write140 #-}
+  {-# INLINE read430 #-}
+  {-# INLINE write430 #-}
+  {-# INLINE readPacked #-}
+  {-# INLINE writePacked #-}
 
 instance VectorSpace Vec4 Float where
   zeroVector = epoint 0

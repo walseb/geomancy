@@ -27,7 +27,9 @@ module Geomancy.Quaternion
 
 import Control.DeepSeq (NFData(rnf))
 import Foreign (Storable(..), castPtr)
+import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 
+import Geomancy.Gl.Block (Block(..))
 import Geomancy.Vec3 (Vec3, vec3, withVec3)
 
 import qualified Geomancy.Vec3 as Vec3
@@ -263,3 +265,29 @@ lookAtUp src dst up = rot2 * rot1
 
     newUp = rotate rot1 up
     fixedUp = Vec3.cross (Vec3.cross dir3 up) dir3
+
+instance Block Quaternion where
+  sizeOfPacked _  = 16
+  alignment140 _  = 16
+  sizeOf140       = sizeOfPacked
+  alignment430    = alignment140
+  sizeOf430       = sizeOf140
+  isStruct _      = True
+  read140     = peekDiffOff
+  write140    = pokeDiffOff
+  read430     = read140
+  write430    = write140
+  readPacked  = read140
+  writePacked = write140
+  {-# INLINE sizeOfPacked #-}
+  {-# INLINE alignment140 #-}
+  {-# INLINE sizeOf140 #-}
+  {-# INLINE alignment430 #-}
+  {-# INLINE sizeOf430 #-}
+  {-# INLINE isStruct #-}
+  {-# INLINE read140 #-}
+  {-# INLINE write140 #-}
+  {-# INLINE read430 #-}
+  {-# INLINE write430 #-}
+  {-# INLINE readPacked #-}
+  {-# INLINE writePacked #-}

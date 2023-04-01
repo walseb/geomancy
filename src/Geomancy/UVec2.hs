@@ -17,8 +17,10 @@ import Control.DeepSeq (NFData(rnf))
 import Data.Word (Word32)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign (Storable(..))
+import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 
 import Geomancy.Elementwise (Elementwise(..))
+import Geomancy.Gl.Block (Block(..))
 
 data UVec2 = UVec2
   {-# UNPACK #-} !Word32
@@ -148,3 +150,29 @@ instance Storable UVec2 where
   peek ptr = uvec2
     <$> peekByteOff ptr 0
     <*> peekByteOff ptr 4
+
+instance Block UVec2 where
+  sizeOfPacked _  = 8
+  alignment140 _  = 8
+  sizeOf140 _     = 8
+  alignment430    = alignment140
+  sizeOf430       = sizeOf140
+  isStruct _      = False
+  read140     = peekDiffOff
+  write140    = pokeDiffOff
+  read430     = read140
+  write430    = write140
+  readPacked  = read140
+  writePacked = write140
+  {-# INLINE sizeOfPacked #-}
+  {-# INLINE alignment140 #-}
+  {-# INLINE sizeOf140 #-}
+  {-# INLINE alignment430 #-}
+  {-# INLINE sizeOf430 #-}
+  {-# INLINE isStruct #-}
+  {-# INLINE read140 #-}
+  {-# INLINE write140 #-}
+  {-# INLINE read430 #-}
+  {-# INLINE write430 #-}
+  {-# INLINE readPacked #-}
+  {-# INLINE writePacked #-}

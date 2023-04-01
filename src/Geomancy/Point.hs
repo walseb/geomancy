@@ -1,3 +1,10 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -27,9 +34,11 @@ import Control.DeepSeq (NFData)
 import Data.AffineSpace (AffineSpace)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign.Storable (Storable)
+import GHC.Generics (Generic)
 import qualified Data.AffineSpace as AffineSpace
 
 import Geomancy.Elementwise (Elementwise(..))
+import Geomancy.Gl.Block (Block(..))
 import Geomancy.Vec2 (Vec2)
 import Geomancy.Vec3 (Vec3, Packed)
 import Geomancy.Vec4 (Vec4)
@@ -37,6 +46,8 @@ import Geomancy.Vector (VectorSpace(..))
 import qualified Geomancy.Vector as Vector
 
 newtype Point v = Point v
+  deriving (Generic)
+  deriving anyclass (Block)
   deriving stock (Eq, Ord, Show)
   deriving newtype (NFData, Num, Fractional, MonoFunctor, MonoPointed, Elementwise, Storable)
 
