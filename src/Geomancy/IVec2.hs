@@ -21,6 +21,7 @@ import Data.Int (Int32)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign (Storable(..))
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
+import GHC.Ix (Ix(..))
 
 import Geomancy.Elementwise (Elementwise(..))
 import Geomancy.Gl.Block (Block(..))
@@ -185,3 +186,28 @@ instance Block IVec2 where
   {-# INLINE write430 #-}
   {-# INLINE readPacked #-}
   {-# INLINE writePacked #-}
+
+instance Ix IVec2 where
+  {-# INLINE range #-}
+  range (l, u) =
+    withIVec2 l \l1 l2 ->
+      withIVec2 u \u1 u2 ->
+        ivec2
+          <$> range (l1, u1)
+          <*> range (l2, u2)
+
+  {-# INLINE unsafeIndex #-}
+  unsafeIndex (l, u) i =
+    withIVec2 l \l1 l2 ->
+      withIVec2 u \u1 u2 ->
+        withIVec2 i \i1 i2 ->
+          unsafeIndex (l2, u2) i2 + unsafeRangeSize (l2, u2) *
+          unsafeIndex (l1, u1) i1
+
+  {-# INLINE inRange #-}
+  inRange (l, u) i =
+    withIVec2 l \l1 l2 ->
+      withIVec2 u \u1 u2 ->
+        withIVec2 i \i1 i2 ->
+          inRange (l1, u1) i1 &&
+          inRange (l2, u2) i2

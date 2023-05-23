@@ -21,10 +21,11 @@ module Geomancy.UVec3
 
 import Control.DeepSeq (NFData(rnf))
 import Data.Coerce (Coercible, coerce)
-import Data.Word (Word32)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
+import Data.Word (Word32)
 import Foreign (Storable(..))
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
+import GHC.Ix (Ix(..))
 
 import Geomancy.Elementwise (Elementwise(..))
 import Geomancy.Gl.Block (Block(..))
@@ -251,3 +252,31 @@ instance Block Packed where
   {-# INLINE write430 #-}
   {-# INLINE readPacked #-}
   {-# INLINE writePacked #-}
+
+instance Ix UVec3 where
+  {-# INLINE range #-}
+  range (l, u) =
+    withUVec3 l \l1 l2 l3 ->
+      withUVec3 u \u1 u2 u3 ->
+        uvec3
+          <$> range (l1, u1)
+          <*> range (l2, u2)
+          <*> range (l3, u3)
+
+  {-# INLINE unsafeIndex #-}
+  unsafeIndex (l, u) i =
+    withUVec3 l \l1 l2 l3 ->
+      withUVec3 u \u1 u2 u3 ->
+        withUVec3 i \i1 i2 i3 ->
+          unsafeIndex (l3, u3) i3 + unsafeRangeSize (l3, u3) * (
+          unsafeIndex (l2, u2) i2 + unsafeRangeSize (l2, u2) * (
+          unsafeIndex (l1, u1) i1))
+
+  {-# INLINE inRange #-}
+  inRange (l, u) i =
+    withUVec3 l \l1 l2 l3 ->
+      withUVec3 u \u1 u2 u3 ->
+        withUVec3 i \i1 i2 i3 ->
+          inRange (l1, u1) i1 &&
+          inRange (l2, u2) i2 &&
+          inRange (l3, u3) i3

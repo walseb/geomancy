@@ -35,6 +35,7 @@ import Data.AffineSpace (AffineSpace)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign.Storable (Storable)
 import GHC.Generics (Generic)
+import GHC.Ix (Ix)
 import qualified Data.AffineSpace as AffineSpace
 
 import Geomancy.Elementwise (Elementwise(..))
@@ -49,7 +50,7 @@ newtype Point v = Point v
   deriving (Generic)
   deriving anyclass (Block)
   deriving stock (Eq, Ord, Show)
-  deriving newtype (NFData, Num, Fractional, MonoFunctor, MonoPointed, Elementwise, Storable)
+  deriving newtype (Ix, NFData, Num, Fractional, MonoFunctor, MonoPointed, Elementwise, Storable)
 
 type instance Element (Point v) = Element v
 

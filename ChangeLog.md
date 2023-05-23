@@ -3,6 +3,7 @@
 ## 0.2.5.1
 
 * Added `convert` function to vector modules to facilitate type-changing operations like rounding.
+* Added `Ix` instances for integral vectors.
 
 ## 0.2.5.0
 
