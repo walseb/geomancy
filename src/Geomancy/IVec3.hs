@@ -14,6 +14,7 @@ module Geomancy.IVec3
   , pattern WithIVec3
   , convert
   , fromTuple
+  , dot
 
   , Packed(..)
   , packed
@@ -60,6 +61,11 @@ convert f t v =
 {-# INLINE fromTuple #-}
 fromTuple :: (Int32, Int32, Int32) -> IVec3
 fromTuple (a, b, c) = ivec3 a b c
+
+{-# INLINE dot #-}
+dot :: IVec3 -> IVec3 -> Int32
+dot (IVec3 l1 l2 l3) (IVec3 r1 r2 r3) =
+  l1 * r1 + l2 * r2 + l3 * r3
 
 instance NFData IVec3 where
   rnf IVec3{} = ()

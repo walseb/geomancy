@@ -13,6 +13,7 @@ module Geomancy.IVec2
   , pattern WithIVec2
   , convert
   , fromTuple
+  , dot
   ) where
 
 import Control.DeepSeq (NFData(rnf))
@@ -55,6 +56,11 @@ pattern WithIVec2 a b <- ((`withIVec2` (,)) -> (a, b))
 {-# INLINE fromTuple #-}
 fromTuple :: (Int32, Int32) -> IVec2
 fromTuple (x, y) = ivec2 x y
+
+{-# INLINE dot #-}
+dot :: IVec2 -> IVec2 -> Int32
+dot (IVec2 l1 l2) (IVec2 r1 r2) =
+  l1 * r1 + l2 * r2
 
 instance NFData IVec2 where
   rnf IVec2{} = ()

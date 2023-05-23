@@ -13,6 +13,7 @@ module Geomancy.UVec4
   , pattern WithUVec4
   , convert
   , fromTuple
+  , dot
   ) where
 
 import Control.DeepSeq (NFData(rnf))
@@ -236,3 +237,8 @@ instance Ix UVec4 where
           inRange (l2, u2) i2 &&
           inRange (l3, u3) i3 &&
           inRange (l4, u4) i4
+
+{-# INLINE dot #-}
+dot :: UVec4 -> UVec4 -> Word32
+dot (UVec4 l1 l2 l3 l4) (UVec4 r1 r2 r3 r4) =
+  l1 * r1 + l2 * r2 + l3 * r3 + l4 * r4

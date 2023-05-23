@@ -13,6 +13,7 @@ module Geomancy.UVec2
   , pattern WithUVec2
   , convert
   , fromTuple
+  , dot
   ) where
 
 import Control.DeepSeq (NFData(rnf))
@@ -142,6 +143,11 @@ instance Num UVec2 where
   fromInteger x = UVec2 x' x'
     where
       x' = fromInteger x
+
+{-# INLINE dot #-}
+dot :: UVec2 -> UVec2 -> Word32
+dot (UVec2 l1 l2) (UVec2 r1 r2) =
+  l1 * r1 + l2 * r2
 
 instance Storable UVec2 where
   {-# INLINE sizeOf #-}

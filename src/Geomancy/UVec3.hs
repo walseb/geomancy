@@ -14,6 +14,7 @@ module Geomancy.UVec3
   , pattern WithUVec3
   , convert
   , fromTuple
+  , dot
 
   , Packed(..)
   , packed
@@ -60,6 +61,11 @@ convert f t v =
 {-# INLINE fromTuple #-}
 fromTuple :: (Word32, Word32, Word32) -> UVec3
 fromTuple (a, b, c) = uvec3 a b c
+
+{-# INLINE dot #-}
+dot :: UVec3 -> UVec3 -> Word32
+dot (UVec3 l1 l2 l3) (UVec3 r1 r2 r3) =
+  l1 * r1 + l2 * r2 + l3 * r3
 
 instance NFData UVec3 where
   rnf UVec3{} = ()
