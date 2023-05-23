@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -11,6 +12,7 @@ module Geomancy.IVec3
   , ivec3
   , withIVec3
   , pattern WithIVec3
+  , convert
   , fromTuple
 
   , Packed(..)
@@ -18,6 +20,7 @@ module Geomancy.IVec3
   ) where
 
 import Control.DeepSeq (NFData(rnf))
+import Data.Coerce (Coercible, coerce)
 import Data.Int (Int32)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign (Storable(..))
@@ -46,6 +49,12 @@ withIVec3 (IVec3 a b c) f = f a b c
 pattern WithIVec3 :: Int32 -> Int32 -> Int32 -> IVec3
 pattern WithIVec3 a b c <- ((`withIVec3` (,,)) -> (a, b, c))
 {-# COMPLETE WithIVec3 #-}
+
+{-# INLINE convert #-}
+convert :: Coercible v IVec3 => (Int32 -> a) -> (a -> a -> a -> r) -> v -> r
+convert f t v =
+  withIVec3 (coerce v) \a b c ->
+    t (f a) (f b) (f c)
 
 {-# INLINE fromTuple #-}
 fromTuple :: (Int32, Int32, Int32) -> IVec3

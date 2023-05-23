@@ -15,6 +15,7 @@ module Geomancy.Vec3
   , vec3
   , withVec3
   , pattern WithVec3
+  , convert
   , fromVec2
   , fromTuple
 
@@ -63,6 +64,12 @@ withVec3
   -> (Float -> Float -> Float -> r)
   -> r
 withVec3 (Vec3 a b c) f = f a b c
+
+{-# INLINE convert #-}
+convert :: Coercible v Vec3 => (Float -> a) -> (a -> a -> a -> r) -> v -> r
+convert f t v =
+  withVec3 (coerce v) \a b c ->
+    t (f a) (f b) (f c)
 
 pattern WithVec3 :: Float -> Float -> Float -> Vec3
 pattern WithVec3 a b c <- ((`withVec3` (,,)) -> (a, b, c))

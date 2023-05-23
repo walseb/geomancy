@@ -16,6 +16,7 @@ module Geomancy.Vec4
   , vec4
   , withVec4
   , pattern WithVec4
+  , convert
   , fromVec2
   , fromVec22
   , fromVec3
@@ -76,6 +77,12 @@ withVec4 (Vec4 arr) f =
     (F# (indexFloatArray# arr 0x1#))
     (F# (indexFloatArray# arr 0x2#))
     (F# (indexFloatArray# arr 0x3#))
+
+{-# INLINE convert #-}
+convert :: Coercible v Vec4 => (Float -> a) -> (a -> a -> a -> a -> r) -> v -> r
+convert f t v =
+  withVec4 (coerce v) \a b c d->
+    t (f a) (f b) (f c) (f d)
 
 {-# INLINE compareVec4 #-}
 compareVec4 :: Vec4 -> Vec4 -> Ordering
