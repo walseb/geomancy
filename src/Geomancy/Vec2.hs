@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -12,6 +13,7 @@ module Geomancy.Vec2
   , withVec2
   , pattern WithVec2
   , fromTuple
+  , convert
 
   , (^*)
   , (^/)
@@ -22,6 +24,7 @@ module Geomancy.Vec2
   ) where
 
 import Control.DeepSeq (NFData(rnf))
+import Data.Coerce (Coercible, coerce)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..))
@@ -47,6 +50,12 @@ withVec2
   -> (Float -> Float -> r)
   -> r
 withVec2 (Vec2 a b) f = f a b
+
+{-# INLINE convert #-}
+convert :: Coercible v Vec2 => (Float -> a) -> (a -> a -> r) -> v -> r
+convert f t v =
+  withVec2 (coerce v) \a b ->
+    t (f a) (f b)
 
 pattern WithVec2 :: Float -> Float -> Vec2
 pattern WithVec2 a b <- ((`withVec2` (,)) -> (a, b))

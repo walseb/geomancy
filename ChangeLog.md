@@ -1,5 +1,9 @@
 # Changelog for geomancy
 
+## 0.2.5.1
+
+* Added `convert` function to vector modules to facilitate type-changing operations like rounding.
+
 ## 0.2.5.0
 
 * Added Geomancy.Gl.Block to derive packed/std140/std430 layouts generically.

@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -10,10 +11,12 @@ module Geomancy.IVec4
   , ivec4
   , withIVec4
   , pattern WithIVec4
+  , convert
   , fromTuple
   ) where
 
 import Control.DeepSeq (NFData(rnf))
+import Data.Coerce (Coercible, coerce)
 import Data.Int (Int32)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign (Storable(..))
@@ -43,6 +46,12 @@ withIVec4 (IVec4 a b c d) f = f a b c d
 pattern WithIVec4 :: Int32 -> Int32 -> Int32 -> Int32 -> IVec4
 pattern WithIVec4 a b c d <- ((`withIVec4` (,,,)) -> (a, b, c, d))
 {-# COMPLETE WithIVec4 #-}
+
+{-# INLINE convert #-}
+convert :: Coercible v IVec4 => (Int32 -> a) -> (a -> a -> a -> a -> r) -> v -> r
+convert f t v =
+  withIVec4 (coerce v) \a b c d ->
+    t (f a) (f b) (f c) (f d)
 
 {-# INLINE fromTuple #-}
 fromTuple :: (Int32, Int32, Int32, Int32) -> IVec4

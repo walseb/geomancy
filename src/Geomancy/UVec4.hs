@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -10,10 +11,12 @@ module Geomancy.UVec4
   , uvec4
   , withUVec4
   , pattern WithUVec4
+  , convert
   , fromTuple
   ) where
 
 import Control.DeepSeq (NFData(rnf))
+import Data.Coerce (Coercible, coerce)
 import Data.Word (Word32)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign (Storable(..))
@@ -43,6 +46,12 @@ withUVec4 (UVec4 a b c d) f = f a b c d
 pattern WithUVec4 :: Word32 -> Word32 -> Word32 -> Word32 -> UVec4
 pattern WithUVec4 a b c d <- ((`withUVec4` (,,,)) -> (a, b, c, d))
 {-# COMPLETE WithUVec4 #-}
+
+{-# INLINE convert #-}
+convert :: Coercible v UVec4 => (Word32 -> a) -> (a -> a -> a -> a -> r) -> v -> r
+convert f t v =
+  withUVec4 (coerce v) \a b c d ->
+    t (f a) (f b) (f c) (f d)
 
 {-# INLINE fromTuple #-}
 fromTuple :: (Word32, Word32, Word32, Word32) -> UVec4
