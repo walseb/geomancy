@@ -5,7 +5,6 @@ packages:
 
 extra-deps:
 - gl-block-1.0
--   ptrdiff-0
 
 system-ghc: true
 ghc-options:
