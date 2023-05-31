@@ -1,16 +1,17 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Geomancy.Point
   ( Point(..)
@@ -36,10 +37,11 @@ import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Foreign.Storable (Storable)
 import GHC.Generics (Generic)
 import GHC.Ix (Ix)
+import GHC.TypeNats (KnownNat)
 import qualified Data.AffineSpace as AffineSpace
 
 import Geomancy.Elementwise (Elementwise(..))
-import Geomancy.Gl.Block (Block(..))
+import Graphics.Gl.Block (Block(..))
 import Geomancy.Vec2 (Vec2)
 import Geomancy.Vec3 (Vec3, Packed)
 import Geomancy.Vec4 (Vec4)
@@ -48,9 +50,13 @@ import qualified Geomancy.Vector as Vector
 
 newtype Point v = Point v
   deriving (Generic)
-  deriving anyclass (Block)
   deriving stock (Eq, Ord, Show)
   deriving newtype (Ix, NFData, Num, Fractional, MonoFunctor, MonoPointed, Elementwise, Storable)
+
+deriving anyclass instance
+  ( KnownNat (PackedSize v)
+  , Block v
+  ) => Block (Point v)
 
 type instance Element (Point v) = Element v
 

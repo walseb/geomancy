@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -25,7 +26,7 @@ import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import GHC.Ix (Ix(..))
 
 import Geomancy.Elementwise (Elementwise(..))
-import Geomancy.Gl.Block (Block(..))
+import Graphics.Gl.Block (Block(..))
 
 data UVec4 = UVec4
   {-# UNPACK #-} !Word32
@@ -182,7 +183,7 @@ instance Storable UVec4 where
     <*> peekByteOff ptr 12
 
 instance Block UVec4 where
-  sizeOfPacked _  = 16
+  type PackedSize UVec4 = 16
   alignment140 _  = 16
   sizeOf140 _     = 16
   alignment430    = alignment140
@@ -194,7 +195,6 @@ instance Block UVec4 where
   write430    = write140
   readPacked  = read140
   writePacked = write140
-  {-# INLINE sizeOfPacked #-}
   {-# INLINE alignment140 #-}
   {-# INLINE sizeOf140 #-}
   {-# INLINE alignment430 #-}

@@ -1,6 +1,8 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Geomancy.Transform
   ( Transform(..)
@@ -36,13 +38,13 @@ import Geomancy.Vec3 (Vec3, vec3, withVec3)
 import Geomancy.Vec4 (fromVec3, withVec4)
 
 import qualified Geomancy.Mat4 as Mat4
-import Geomancy.Gl.Block (Block(..))
+import Graphics.Gl.Block (Block(..))
 
 newtype Transform = Transform { unTransform :: Mat4 }
   deriving newtype (Show, Semigroup, Monoid, Storable)
 
 instance Block Transform where
-  sizeOfPacked _  = 64
+  type PackedSize Transform = 64
   alignment140 _  = 16
   sizeOf140       = sizeOfPacked
   alignment430    = alignment140
@@ -54,7 +56,6 @@ instance Block Transform where
   write430    = write140
   readPacked  = read140
   writePacked = write140
-  {-# INLINE sizeOfPacked #-}
   {-# INLINE alignment140 #-}
   {-# INLINE sizeOf140 #-}
   {-# INLINE alignment430 #-}

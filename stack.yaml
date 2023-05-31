@@ -4,7 +4,8 @@ packages:
 - .
 
 extra-deps:
-- ptrdiff-0
+- gl-block-1.0
+-   ptrdiff-0
 
 system-ghc: true
 ghc-options:

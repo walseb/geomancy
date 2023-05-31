@@ -1,8 +1,10 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -46,7 +48,7 @@ import Text.Printf (printf)
 import qualified Data.Foldable as Foldable
 import qualified Data.List as List
 
-import Geomancy.Gl.Block (Block(..))
+import Graphics.Gl.Block (Block(..))
 import Geomancy.Vec4 (Vec4(..), unsafeNewVec4)
 
 data Mat4 = Mat4 ByteArray#
@@ -510,7 +512,7 @@ instance Storable Mat4 where
       (# world', Mat4 arr' #)
 
 instance Block Mat4 where
-  sizeOfPacked _  = 64
+  type PackedSize Mat4 = 64
   alignment140 _  = 16
   sizeOf140       = sizeOfPacked
   alignment430    = alignment140
@@ -522,7 +524,6 @@ instance Block Mat4 where
   write430    = write140
   readPacked  = read140
   writePacked = write140
-  {-# INLINE sizeOfPacked #-}
   {-# INLINE alignment140 #-}
   {-# INLINE sizeOf140 #-}
   {-# INLINE alignment430 #-}

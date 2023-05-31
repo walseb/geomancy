@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -44,7 +45,7 @@ import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import qualified Data.VectorSpace as VectorSpace
 
 import Geomancy.Elementwise (Elementwise(..))
-import Geomancy.Gl.Block (Block(..))
+import Graphics.Gl.Block (Block(..))
 import Geomancy.Gl.Funs (GlModf(..), GlNearest)
 import Geomancy.Vec2 (Vec2, withVec2)
 
@@ -245,7 +246,7 @@ instance Storable Vec3 where
       ptr' = castPtr ptr
 
 instance Block Vec3 where
-  sizeOfPacked _  = 12
+  type PackedSize Vec3 = 12
   alignment140 _  = 16
   sizeOf140 _     = 16
   alignment430    = alignment140
@@ -257,7 +258,6 @@ instance Block Vec3 where
   write430    = write140
   readPacked  = read140
   writePacked = write140
-  {-# INLINE sizeOfPacked #-}
   {-# INLINE alignment140 #-}
   {-# INLINE sizeOf140 #-}
   {-# INLINE alignment430 #-}
@@ -389,7 +389,7 @@ instance Storable Packed where
       ptr' = castPtr ptr
 
 instance Block Packed where
-  sizeOfPacked _  = 12
+  type PackedSize Packed = 12
   alignment140 _  = 16
   sizeOf140 _     = 16
   alignment430    = alignment140
@@ -401,7 +401,6 @@ instance Block Packed where
   write430    = write140
   readPacked  = read140
   writePacked = write140
-  {-# INLINE sizeOfPacked #-}
   {-# INLINE alignment140 #-}
   {-# INLINE sizeOf140 #-}
   {-# INLINE alignment430 #-}

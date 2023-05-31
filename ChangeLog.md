@@ -1,7 +1,8 @@
 # Changelog for geomancy
 
-## 0.2.5.1
+## 0.2.6.0
 
+* `Geomancy.Gl.Block` extract to `gl-block` package as `Graphics.Gl.Block`.
 * Added `convert` function to vector modules to facilitate type-changing operations like rounding.
 * Added `Ix` instances for integral vectors.
 * Added `dot` for integral vectors.

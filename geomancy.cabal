@@ -3,11 +3,9 @@ cabal-version: 1.12
 -- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: 631b69e286844ca2e4cbaccb8d21db5acc032af8dea315906d173da8213c4a10
 
 name:           geomancy
-version:        0.2.5.1
+version:        0.2.6.0
 synopsis:       Geometry and matrix manipulation
 description:    Sometimes it is unavoidable you have to do stuff on CPU.
                 Let's at least do it faster.
@@ -30,7 +28,6 @@ library
   exposed-modules:
       Geomancy
       Geomancy.Elementwise
-      Geomancy.Gl.Block
       Geomancy.Gl.Funs
       Geomancy.Interpolate
       Geomancy.IVec2
@@ -63,6 +60,7 @@ library
       base >=4.7 && <5
     , containers
     , deepseq
+    , gl-block
     , mono-traversable
     , ptrdiff
     , simple-affine-space

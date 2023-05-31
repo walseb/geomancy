@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -32,7 +33,7 @@ import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import qualified Data.VectorSpace as VectorSpace
 
 import Geomancy.Elementwise (Elementwise(..))
-import Geomancy.Gl.Block (Block(..))
+import Graphics.Gl.Block (Block(..))
 import Geomancy.Gl.Funs (GlModf(..), GlNearest)
 
 data Vec2 = Vec2
@@ -242,7 +243,7 @@ instance Storable Vec2 where
     <*> peekByteOff ptr 4
 
 instance Block Vec2 where
-  sizeOfPacked _  = 8
+  type PackedSize Vec2 = 8
   alignment140 _  = 8
   sizeOf140 _     = 8
   alignment430    = alignment140
@@ -254,7 +255,6 @@ instance Block Vec2 where
   write430    = write140
   readPacked  = read140
   writePacked = write140
-  {-# INLINE sizeOfPacked #-}
   {-# INLINE alignment140 #-}
   {-# INLINE sizeOf140 #-}
   {-# INLINE alignment430 #-}

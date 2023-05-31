@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -44,7 +45,7 @@ import Text.Printf (printf)
 import qualified Data.VectorSpace as VectorSpace
 
 import Geomancy.Elementwise (Elementwise(..))
-import Geomancy.Gl.Block (Block(..))
+import Graphics.Gl.Block (Block(..))
 import Geomancy.Gl.Funs (GlModf(..), GlNearest)
 import Geomancy.Vec2 (Vec2, withVec2)
 import Geomancy.Vec3 (Vec3, withVec3)
@@ -309,7 +310,7 @@ instance Storable Vec4 where
       (# world', Vec4 arr' #)
 
 instance Block Vec4 where
-  sizeOfPacked _  = 16
+  type PackedSize Vec4 = 16
   alignment140 _  = 16
   sizeOf140       = sizeOfPacked
   alignment430    = alignment140
@@ -321,7 +322,6 @@ instance Block Vec4 where
   write430    = write140
   readPacked  = read140
   writePacked = write140
-  {-# INLINE sizeOfPacked #-}
   {-# INLINE alignment140 #-}
   {-# INLINE sizeOf140 #-}
   {-# INLINE alignment430 #-}

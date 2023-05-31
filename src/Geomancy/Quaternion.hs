@@ -1,4 +1,6 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -- | Specialized and inlined @Quaternion Float@.
 
@@ -29,7 +31,7 @@ import Control.DeepSeq (NFData(rnf))
 import Foreign (Storable(..), castPtr)
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 
-import Geomancy.Gl.Block (Block(..))
+import Graphics.Gl.Block (Block(..))
 import Geomancy.Vec3 (Vec3, vec3, withVec3)
 
 import qualified Geomancy.Vec3 as Vec3
@@ -267,7 +269,7 @@ lookAtUp src dst up = rot2 * rot1
     fixedUp = Vec3.cross (Vec3.cross dir3 up) dir3
 
 instance Block Quaternion where
-  sizeOfPacked _  = 16
+  type PackedSize Quaternion = 16
   alignment140 _  = 16
   sizeOf140       = sizeOfPacked
   alignment430    = alignment140
@@ -279,7 +281,6 @@ instance Block Quaternion where
   write430    = write140
   readPacked  = read140
   writePacked = write140
-  {-# INLINE sizeOfPacked #-}
   {-# INLINE alignment140 #-}
   {-# INLINE sizeOf140 #-}
   {-# INLINE alignment430 #-}
