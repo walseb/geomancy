@@ -11,7 +11,13 @@ import Geomancy.Transform (Transform(..))
 
 import qualified Geomancy.Vec3 as Vec3
 
-lookAt :: Vec3 -> Vec3 -> Vec3 -> Transform
+-- | Construct a camera-view transformation with the position of the
+-- camera/eye, the target (what the camera is pointing at), and an up vector
+-- which determines what is "up" (typically @vec3 0 1 0@).
+lookAt :: Vec3 -- ^ Eye position
+       -> Vec3 -- ^ Target
+       -> Vec3 -- ^ Up vector
+       -> Transform
 lookAt eye center up =
   withVec3 xa \xaX xaY xaZ ->
   withVec3 ya \yaX yaY yaZ ->
