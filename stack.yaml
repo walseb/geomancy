@@ -1,4 +1,4 @@
-resolver: https://gitlab.com/keid/meta/-/raw/main/resolvers/keid-engine-2023-04-07.yaml
+resolver: https://gitlab.com/keid/meta/-/raw/main/resolvers/keid-engine-2024-06-24.yaml
 
 packages:
 - .
