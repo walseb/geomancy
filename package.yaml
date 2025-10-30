@@ -1,17 +1,16 @@
 name:       geomancy
-version:    0.2.6.0
+version:    0.3.0.0
 git:        "https://gitlab.com/dpwiz/geomancy"
 license:    BSD3
-author:     "Alexander Bondarenko"
+author:     "IC Rainbow"
 maintainer: "aenor.realm@gmail.com"
-copyright:  "2021 Alexander Bondarenko"
+copyright:  "2021-2025 IC Rainbow"
 
 extra-source-files:
 - README.md
 - ChangeLog.md
 
-# Metadata used when publishing your package
-synopsis: Geometry and matrix manipulation
+synopsis: Vectors and matrix manipulation
 category: Graphics
 
 description: |

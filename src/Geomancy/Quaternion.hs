@@ -10,6 +10,8 @@ module Geomancy.Quaternion
   , withQuaternion
 
   , axisAngle
+  , intrinsic
+  , extrinsic
   , rotate
   , rotatePoint
   , rotationBetween
@@ -149,14 +151,14 @@ instance Num Quaternion where
       (d - h)
 
   {-# INLINE (*) #-}
-  Quaternion a b c d * Quaternion e f g h =
-    withVec3 v \y z w ->
-      Quaternion x y z w
+  Quaternion as ax ay az * Quaternion bs bx by bz =
+    withVec3 v \x y z ->
+      Quaternion s x y z
     where
-      x = a * e - Vec3.dot v1 v2
-      v = Vec3.cross v1 v2 + v2 Vec3.^* a + v1 Vec3.^* e
-      v1 = vec3 b c d
-      v2 = vec3 f g h
+      s = as * bs - Vec3.dot v1 v2
+      v = Vec3.cross v1 v2 + v2 Vec3.^* as + v1 Vec3.^* bs
+      v1 = vec3 ax ay az
+      v2 = vec3 bx by bz
 
   {-# INLINE fromInteger #-}
   fromInteger x = Quaternion (fromInteger x) 0 0 0
@@ -217,7 +219,10 @@ instance Storable Quaternion where
     where
       ptr' = castPtr ptr
 
--- | Quaternion construction from axis and angle.
+{- | Quaternion construction from axis and angle.
+
+In a right-handed system, the rotation would appear clockwise when looking in the axis direction.
+-}
 {-# INLINE axisAngle #-}
 axisAngle :: Vec3 -> Float -> Quaternion
 axisAngle axis rads =
@@ -226,6 +231,55 @@ axisAngle axis rads =
   where
     half = rads / 2
 
+{- A composition of roll-pitch-yaw (@Z-X'-Y''@) rotations using local/object's own frame.
+
+Useful for airplane-like controls and first-person camera directions.
+
+The order of application is:
+- Roll is applied first, turning around forward and adjusting the "up" and the "right".
+- Pitch is applied second, turning around the *new* "right" and adjusting the "up" again.
+- Yaw is applied last, turning around the twice-adjusted "up".
+
+Apply the resulting `Quaternion` to the previous local basis to get an updated local basis.
+-}
+intrinsic :: Float -> Float -> Float -> Quaternion
+intrinsic roll pitch yaw =
+  -- XXX: fused construction is a bit faster than chaining axisAngles, but less legible.
+  -- see Spec.hs for reference
+  quaternion
+    -- scalar
+    (cx * cy * cz + sx * sy * sz)
+    -- vector
+    (sx * cy * cz + cx * sy * sz)
+    (cx * sy * cz - sx * cy * sz)
+    (cx * cy * sz - sx * sy * cz)
+  where
+    cx = cos (pitch * 0.5)
+    sx = sin (pitch * 0.5)
+    cy = cos (yaw * 0.5)
+    sy = sin (yaw * 0.5)
+    cz = cos (roll * 0.5)
+    sz = sin (roll * 0.5)
+
+{- A composition of rotations using global/parent/world frame.
+
+Useful for kinematics problems. Use intrinsic if unsure.
+
+The order of application is:
+- Heading is applied first, turning around the "gravity" axis (west-east rotation).
+- Elevation is applied second, adding some down/up rotation wrt. the original right direction.
+- Tilt is applied last, adding some down/up rotation wrt. the original forward direction.
+
+Apply the resulting `Quaternion` to the canonical/parent basis to get a local basis.
+-}
+extrinsic :: Float -> Float -> Float -> Quaternion
+extrinsic heading elevation tilt =
+  axisAngle (vec3 0 0 1) tilt *
+  axisAngle (vec3 1 0 0) elevation *
+  axisAngle (vec3 0 1 0) heading
+
+{- | Rotate point with a unit quaternion.
+-}
 {-# INLINE rotate #-}
 rotate :: Quaternion -> Vec3 -> Vec3
 rotate q v = withQuaternion q' \_a b c d -> vec3 b c d
@@ -233,6 +287,8 @@ rotate q v = withQuaternion q' \_a b c d -> vec3 b c d
     q' = withVec3 v \x y z ->
       q * quaternion 0 x y z * conjugate q
 
+{- | Rotate point around another point with a unit quaternion.
+-}
 {-# INLINE rotatePoint #-}
 rotatePoint :: Quaternion -> Vec3 -> Vec3 -> Vec3
 rotatePoint q origin point =

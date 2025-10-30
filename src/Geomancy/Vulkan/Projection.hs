@@ -1,72 +1,67 @@
 module Geomancy.Vulkan.Projection
-  ( perspective
-  , infinitePerspective
-  , orthoOffCenter
+  ( reverseDepthRH
+  , reverseDepthOrthoRH
+  , orthoRH
   ) where
 
 import Geomancy.Mat4 (colMajor)
 import Geomancy.Transform (Transform(..))
 
-perspective
-  :: Integral side
-  => Float
+-- | Construct a view-to-NDC transformation.
+--
+-- This will shove a camera frustum (an expanding pyramid) into a Vulkan "clip space" box
+-- with the dimensions [-1; 1] left-to-right, [-1; 1] top-to-bottom, and [1; 0] into the screen.
+--
+-- That is, things further away in the view will be pulled into [0; 0; 0] point on the *back* of the box.
+-- And things that on the near plane set by the argument to this function will be scaled to match
+-- the aspect ratio and the field of view.
+--
+-- When using FoV @pi/2@ and @width@=@height the points with Z=near will keep their positions in the XY plane.
+--
+-- NOTE: To update your code using a vanilla perspective:
+--
+-- Change your depth buffer's clear value.
+--    Instead of clearing to 1.0 (farthest), you now clear to 0.0.
+-- Change your depth comparison function.
+--    Instead of VK_COMPARE_OP_LESS, you must use VK_COMPARE_OP_GREATER.
+reverseDepthRH
+  :: Float
+  -> Float
   -> Float -> Float
-  -> side -> side
   -> Transform
-perspective fovRads near far width height = colMajor
-  x 0   0   0
-  0 y   0   0
-  0 0   z w23
-  0 0 w32   1
-
+reverseDepthRH fovRads zn width height =
+  colMajor
+    sx  0  0  0
+    0  sy  0  0
+    0   0  0  1
+    0   0 zn  0
   where
-    x = cotFoV * aspectX
-    y = -cotFoV
-    z = far / (near - far)
-    w23 = near * far / (near - far)
-    w32 = -1
+    sx = sy * recipAspect
+      where
+        recipAspect = height / width
+    sy = 1 / tan (fovRads / 2)
 
-    cotFoV = recip . tan $ 0.5 * fovRads
+{- | Vanilla orthographic projection centered on @0,0@
 
-    aspectX = fromIntegral height / fromIntegral width
-
-infinitePerspective
-  :: Integral side
-  => Float
-  -> side
-  -> side
-  -> Transform
-infinitePerspective fovRads width height = colMajor
-  x   0   0  0
-  0 (-y)  0  0
-  0   0 (-1) w
-  0   0 (-1) 0
+@orthoRH 0 1 2 2@ gives identity transform.
+@orthoRH 0 1 800 600@ will map @vec3 400 300 0@ to @vec3 0 0 0@.
+-}
+orthoRH :: Float -> Float -> Float -> Float -> Transform
+orthoRH near far width height =
+  colMajor
+    sx 0 0 0
+    0 sy 0 0
+    0  0 z w
+    0  0 0 1
   where
-    (x, y) =
-      if width > height then
-        ( cotFoV / camAspect
-        , cotFoV
-        )
-      else
-        ( cotFoV
-        , cotFoV * camAspect
-        )
-    camAspect = fromIntegral width / fromIntegral height
-    cotFoV = recip . tan $ 0.5 * fovRads
-
-    w = -2 * near
-    near = 1/128 -- 2048
-
-orthoOffCenter :: Integral side => Float -> Float -> side -> side -> Transform
-orthoOffCenter near far width height = colMajor
-  x 0 0 0
-  0 y 0 0
-  0 0 z w
-  0 0 0 1
-
-  where
-    x = 2 / fromIntegral width
-    y = 2 / fromIntegral height
+    sx = 2 / width
+    sy = 2 / height
     z = 1 / (far - near)
-
     w = near * (near - far)
+
+{- | Reverse-depth orthographic projection centered on @0,0@
+
+Can be used in the same render pass with reverseDepthRH/VK_COMPARE_OP_GREATER pipelines.
+-}
+reverseDepthOrthoRH :: Float -> Float -> Float -> Float -> Transform
+reverseDepthOrthoRH near far = orthoRH far near

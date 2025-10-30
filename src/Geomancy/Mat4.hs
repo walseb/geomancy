@@ -1,57 +1,64 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 {-# LANGUAGE ViewPatterns #-}
+
+{-# OPTIONS_GHC -Wno-orphans #-} -- XXX: until there are order-specific types
 
 -- | General matrix storage and operations.
 
 module Geomancy.Mat4
   ( Mat4
-
-  , rowMajor
-  , withRowMajor
-  , toListRowMajor
-  , toListRowMajor2d
-  , fromRowMajor2d
-
-  , colMajor
-  , withColMajor
-  , toListColMajor
-  , toListColMajor2d
-
+    -- * Operations
   , identity
   , transpose
   , inverse
+  , det
   , pointwise
   , zipWith
   , matrixProduct
   , scalarMultiply
   , (!*)
+
+    -- * Construction
+
+    -- ** Col-major
+  , colMajor
+  , withColMajor
+  , toListColMajor
+  , toListColMajor2d
+  , showColumns
+
+    -- ** Row-major
+  , rowMajor
+  , withRowMajor
+  , toListRowMajor
+  , toListRowMajor2d
+  , fromRowMajor2d
+  , showRows
   ) where
 
 import Prelude hiding (zipWith)
 import GHC.Exts hiding (VecCount(..), toList)
+import Geomancy.Mat4.Internal
 
-import Control.DeepSeq (NFData(rnf))
-import Foreign (Storable(..))
-import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
-import GHC.IO (IO(..))
 import System.IO.Unsafe (unsafePerformIO)
 import Text.Printf (printf)
 
 import qualified Data.Foldable as Foldable
-import qualified Data.List as List
 
-import Graphics.Gl.Block (Block(..))
-import Geomancy.Vec4 (Vec4(..), unsafeNewVec4)
+import Geomancy.Vec4 (Vec4(..), newVec4)
 
-data Mat4 = Mat4 ByteArray#
+toListColMajor :: Coercible a Mat4 => a -> [Float]
+toListColMajor = toListMemory . coerce
+
+toListColMajor2d :: Coercible a Mat4 => a -> [[Float]]
+toListColMajor2d = toList2dMemory . coerce
 
 {- | Construct 'Mat4' from @row@ notation.
 -}
@@ -62,28 +69,17 @@ rowMajor
   -> Float -> Float -> Float -> Float
   -> Float -> Float -> Float -> Float
   -> a
-rowMajor = coerce mat4
-
-{- | Reduce 'Mat4' with a function with @row@ notation of arguments.
--}
-withRowMajor
-  :: Coercible a Mat4
-  => a
-  ->
-    ( Float -> Float -> Float -> Float ->
-      Float -> Float -> Float -> Float ->
-      Float -> Float -> Float -> Float ->
-      Float -> Float -> Float -> Float ->
-      r
-    )
-  -> r
-withRowMajor m = withMat4 (coerce m)
-
-toListRowMajor :: Coercible a Mat4 => a -> [Float]
-toListRowMajor = toList . coerce
-
-toListRowMajor2d :: Coercible a Mat4 => a -> [[Float]]
-toListRowMajor2d = toList2d . coerce
+rowMajor
+  e0 e1 e2 e3
+  e4 e5 e6 e7
+  e8 e9 eA eB
+  eC eD eE eF =
+    -- Transpose on store
+    coerce $ fromMemory
+      e0 e4 e8 eC
+      e1 e5 e9 eD
+      e2 e6 eA eE
+      e3 e7 eB eF
 
 {- |
   Build a Mat4 from a list-of-lists kind of container
@@ -103,15 +99,15 @@ fromRowMajor2d
 fromRowMajor2d rows =
   case Foldable.toList rows of
     [r0, r1, r2, r3] ->
-      withRow r0 \m00 m01 m02 m03 ->
-      withRow r1 \m10 m11 m12 m13 ->
-      withRow r2 \m20 m21 m22 m23 ->
-      withRow r3 \m30 m31 m32 m33 ->
-        Just . coerce $ mat4
-          m00 m01 m02 m03
-          m10 m11 m12 m13
-          m20 m21 m22 m23
-          m30 m31 m32 m33
+      withRow r0 \e0 e1 e2 e3 ->
+      withRow r1 \e4 e5 e6 e7 ->
+      withRow r2 \e8 e9 eA eB ->
+      withRow r3 \eC eD eE eF ->
+        Just . coerce @a $ rowMajor
+          e0 e4 e8 eC
+          e1 e5 e9 eD
+          e2 e6 eA eE
+          e3 e7 eB eF
     _ ->
       Nothing
   where
@@ -122,26 +118,51 @@ fromRowMajor2d rows =
         _ ->
           Nothing
 
+{- | Reduce 'Mat4' with a function with @row@ notation for arguments.
+-}
+{-# INLINE withRowMajor #-}
+withRowMajor
+  :: Coercible a Mat4
+  => a
+  ->
+    ( Float -> Float -> Float -> Float ->
+      Float -> Float -> Float -> Float ->
+      Float -> Float -> Float -> Float ->
+      Float -> Float -> Float -> Float ->
+      r
+    )
+  -> r
+withRowMajor m f = withMemory (coerce m)
+  \ e0 e1 e2 e3
+    e4 e5 e6 e7
+    e8 e9 eA eB
+    eC eD eE eF ->
+  f -- transposed element order
+    e0 e4 e8 eC
+    e1 e5 e9 eD
+    e2 e6 eA eE
+    e3 e7 eB eF
+
 {- | Construct a 'Mat4' from @column@ notation.
 -}
 {-# INLINE colMajor #-}
 colMajor
-  :: Coercible Mat4 a
+  :: forall a . Coercible Mat4 a
   => Float -> Float -> Float -> Float
   -> Float -> Float -> Float -> Float
   -> Float -> Float -> Float -> Float
   -> Float -> Float -> Float -> Float
   -> a
 colMajor
-  m00 m01 m02 m03
-  m10 m11 m12 m13
-  m20 m21 m22 m23
-  m30 m31 m32 m33 =
-    coerce $ mat4
-      m00 m10 m20 m30
-      m01 m11 m21 m31
-      m02 m12 m22 m32
-      m03 m13 m23 m33
+  e0 e1 e2 e3
+  e4 e5 e6 e7
+  e8 e9 eA eB
+  eC eD eE eF =
+    coerce $ fromMemory
+      e0 e1 e2 e3
+      e4 e5 e6 e7
+      e8 e9 eA eB
+      eC eD eE eF
 
 {- | Reduce 'Mat4' with a function with @column@ notation for arguments.
 -}
@@ -157,140 +178,64 @@ withColMajor
       r
     )
   -> r
-withColMajor m f = withMat4 (coerce m)
-  \ m00 m01 m02 m03
-    m10 m11 m12 m13
-    m20 m21 m22 m23
-    m30 m31 m32 m33 ->
-  f
-    m00 m10 m20 m30
-    m01 m11 m21 m31
-    m02 m12 m22 m32
-    m03 m13 m23 m33
+withColMajor m f = withMemory (coerce m)
+  \ e0 e1 e2 e3
+    e4 e5 e6 e7
+    e8 e9 eA eB
+    eC eD eE eF ->
+  f -- matching element order
+    e0 e1 e2 e3
+    e4 e5 e6 e7
+    e8 e9 eA eB
+    eC eD eE eF
 
-toListColMajor :: Coercible a Mat4 => a -> [Float]
-toListColMajor = toListTrans . coerce
+toListRowMajor :: Coercible a Mat4 => a -> [Float]
+toListRowMajor = toListTrans . coerce
 
-toListColMajor2d :: Coercible a Mat4 => a -> [[Float]]
-toListColMajor2d = toList2dTrans . coerce
+toListRowMajor2d :: Coercible a Mat4 => a -> [[Float]]
+toListRowMajor2d = toList2dTrans . coerce
 
-{- | Construct 'Mat4' from elements in memory order.
--}
-{-# INLINE mat4 #-}
-mat4
-  :: Float -> Float -> Float -> Float
-  -> Float -> Float -> Float -> Float
-  -> Float -> Float -> Float -> Float
-  -> Float -> Float -> Float -> Float
-  -> Mat4
-mat4
-  (F# m00) (F# m01) (F# m02) (F# m03)
-  (F# m10) (F# m11) (F# m12) (F# m13)
-  (F# m20) (F# m21) (F# m22) (F# m23)
-  (F# m30) (F# m31) (F# m32) (F# m33) =
-  runRW# \world ->
-    let
-      !(# world_, arr #) = newAlignedPinnedByteArray# 64# 16# world
-
-      world00 = writeFloatArray# arr 0x0# m00 world_
-      world01 = writeFloatArray# arr 0x1# m01 world00
-      world02 = writeFloatArray# arr 0x2# m02 world01
-      world03 = writeFloatArray# arr 0x3# m03 world02
-
-      world10 = writeFloatArray# arr 0x4# m10 world03
-      world11 = writeFloatArray# arr 0x5# m11 world10
-      world12 = writeFloatArray# arr 0x6# m12 world11
-      world13 = writeFloatArray# arr 0x7# m13 world12
-
-      world20 = writeFloatArray# arr 0x8# m20 world13
-      world21 = writeFloatArray# arr 0x9# m21 world20
-      world22 = writeFloatArray# arr 0xA# m22 world21
-      world23 = writeFloatArray# arr 0xB# m23 world22
-
-      world30 = writeFloatArray# arr 0xC# m30 world23
-      world31 = writeFloatArray# arr 0xD# m31 world30
-      world32 = writeFloatArray# arr 0xE# m32 world31
-      world33 = writeFloatArray# arr 0xF# m33 world32
-
-      !(# _world', arr' #) = unsafeFreezeByteArray# arr world33
-    in
-      Mat4 arr'
-
-{- | Reduce 'Mat4' with a function with @memory@ notation for arguments.
--}
-{-# INLINE withMat4 #-}
-withMat4
-  :: Mat4
-  ->
-    ( Float -> Float -> Float -> Float ->
-      Float -> Float -> Float -> Float ->
-      Float -> Float -> Float -> Float ->
-      Float -> Float -> Float -> Float ->
-      r
-    )
-  -> r
-withMat4 (Mat4 arr) f =
-  f
-    (F# (indexFloatArray# arr 0x0#))
-    (F# (indexFloatArray# arr 0x1#))
-    (F# (indexFloatArray# arr 0x2#))
-    (F# (indexFloatArray# arr 0x3#))
-
-    (F# (indexFloatArray# arr 0x4#))
-    (F# (indexFloatArray# arr 0x5#))
-    (F# (indexFloatArray# arr 0x6#))
-    (F# (indexFloatArray# arr 0x7#))
-
-    (F# (indexFloatArray# arr 0x8#))
-    (F# (indexFloatArray# arr 0x9#))
-    (F# (indexFloatArray# arr 0xA#))
-    (F# (indexFloatArray# arr 0xB#))
-
-    (F# (indexFloatArray# arr 0xC#))
-    (F# (indexFloatArray# arr 0xD#))
-    (F# (indexFloatArray# arr 0xE#))
-    (F# (indexFloatArray# arr 0xF#))
-
-{- | @I@, the identity matrix.
-
-Neutral element of its monoid, so you can use 'mempty'.
--}
-{-# INLINE identity #-}
-identity :: Mat4
-identity = mat4
-  1 0 0 0
-  0 1 0 0
-  0 0 1 0
-  0 0 0 1
-
-{-# INLINE transpose #-}
-transpose :: Mat4 -> Mat4
-transpose =
-  flip withMat4
-    \ m00 m01 m02 m03
-      m10 m11 m12 m13
-      m20 m21 m22 m23
-      m30 m31 m32 m33 ->
-    mat4
-      m00 m10 m20 m30
-      m01 m11 m21 m31
-      m02 m12 m22 m32
-      m03 m13 m23 m33
-
-{- | Compute an inverse matrix, slowly.
--}
-inverse :: (Coercible Mat4 a, Coercible Mat4 a) => a -> a
-inverse m =
-  coerce $ withMat4 (coerce m)
+det :: forall a . (Coercible Mat4 a, Coercible Mat4 a) => a -> Float
+det m =
+  withColMajor (coerce @_ @a m)
     \ m00 m01 m02 m03
       m10 m11 m12 m13
       m20 m21 m22 m23
       m30 m31 m32 m33 ->
         let
-          invDet = recip det
+          s0 = m00 * m11 - m10 * m01
+          s1 = m00 * m12 - m10 * m02
+          s2 = m00 * m13 - m10 * m03
+          s3 = m01 * m12 - m11 * m02
+          s4 = m01 * m13 - m11 * m03
+          s5 = m02 * m13 - m12 * m03
 
-          det
-            = s0 * c5
+          c5 = m22 * m33 - m32 * m23
+          c4 = m21 * m33 - m31 * m23
+          c3 = m21 * m32 - m31 * m22
+          c2 = m20 * m33 - m30 * m23
+          c1 = m20 * m32 - m30 * m22
+          c0 = m20 * m31 - m30 * m21
+        in
+            s0 * c5
+          - s1 * c4
+          + s2 * c3
+          + s3 * c2
+          - s4 * c1
+          + s5 * c0
+
+{- | Compute an inverse matrix, slowly.
+-}
+inverse :: forall a . (Coercible Mat4 a, Coercible Mat4 a) => a -> a
+inverse m =
+  coerce @a $ withColMajor (coerce @_ @a m)
+    \ m00 m01 m02 m03
+      m10 m11 m12 m13
+      m20 m21 m22 m23
+      m30 m31 m32 m33 ->
+        let
+          invDet = recip $
+              s0 * c5
             - s1 * c4
             + s2 * c3
             + s3 * c2
@@ -331,143 +276,36 @@ inverse m =
           i32 = (-m30 * s3 + m31 * s1 - m32 * s0) * invDet
           i33 = ( m20 * s3 - m21 * s1 + m22 * s0) * invDet
         in
-          mat4
+          colMajor
             i00 i01 i02 i03
             i10 i11 i12 i13
             i20 i21 i22 i23
             i30 i31 i32 i33
 
-pointwise :: Mat4 -> Mat4 -> (Float -> Float -> Float) -> Mat4
-pointwise a b f =
-  withMat4 a
-    \ a00 a01 a02 a03
-      a10 a11 a12 a13
-      a20 a21 a22 a23
-      a30 a31 a32 a33 ->
-  withMat4 b
-    \ b00 b01 b02 b03
-      b10 b11 b12 b13
-      b20 b21 b22 b23
-      b30 b31 b32 b33 ->
-  mat4
-    (f a00 b00) (f a01 b01) (f a02 b02) (f a03 b03)
-    (f a10 b10) (f a11 b11) (f a12 b12) (f a13 b13)
-    (f a20 b20) (f a21 b21) (f a22 b22) (f a23 b23)
-    (f a30 b30) (f a31 b31) (f a32 b32) (f a33 b33)
-
-toList :: Mat4 -> [Float]
-toList = flip withMat4
-    \ a00 a01 a02 a03
-      a10 a11 a12 a13
-      a20 a21 a22 a23
-      a30 a31 a32 a33 ->
-    [ a00, a01, a02, a03
-    , a10, a11, a12, a13
-    , a20, a21, a22, a23
-    , a30, a31, a32, a33
-    ]
-
-toList2d :: Mat4 -> [[Float]]
-toList2d = flip withMat4
-    \ a00 a01 a02 a03
-      a10 a11 a12 a13
-      a20 a21 a22 a23
-      a30 a31 a32 a33 ->
-    [ [a00, a01, a02, a03]
-    , [a10, a11, a12, a13]
-    , [a20, a21, a22, a23]
-    , [a30, a31, a32, a33]
-    ]
-
-toListTrans :: Mat4 -> [Float]
-toListTrans = flip withMat4
-    \ a00 a01 a02 a03
-      a10 a11 a12 a13
-      a20 a21 a22 a23
-      a30 a31 a32 a33 ->
-    [ a00, a10, a20, a30
-    , a01, a11, a21, a31
-    , a02, a12, a22, a32
-    , a03, a13, a23, a33
-    ]
-
-toList2dTrans :: Mat4 -> [[Float]]
-toList2dTrans = flip withMat4
-    \ a00 a01 a02 a03
-      a10 a11 a12 a13
-      a20 a21 a22 a23
-      a30 a31 a32 a33 ->
-    [ [a00, a10, a20, a30]
-    , [a01, a11, a21, a31]
-    , [a02, a12, a22, a32]
-    , [a03, a13, a23, a33]
-    ]
-
-zipWith :: (Float -> Float -> c) -> Mat4 -> Mat4 -> [c]
-zipWith f a b = List.zipWith f (toList a) (toList b)
-
-foreign import ccall unsafe "Mat4xMat4_SIMD" m4m4simd :: Addr# -> Addr# -> Addr# -> IO ()
+foreign import ccall unsafe "Mat4xMat4_SIMD" m4m4simd :: ByteArray# -> ByteArray# -> ByteArray# -> IO ()
 
 {-# INLINE matrixProduct #-}
 matrixProduct :: Mat4 -> Mat4 -> Mat4
 matrixProduct (Mat4 l) (Mat4 r) = unsafePerformIO do
-  result@(Mat4 m) <- unsafeNewMat4
-  m4m4simd
-    (byteArrayContents# l)
-    (byteArrayContents# r)
-    (byteArrayContents# m)
+  result@(Mat4 m) <- newMat4
+  m4m4simd l r m
   pure result
 
-{-# INLINE unsafeNewMat4 #-}
-unsafeNewMat4 :: IO Mat4
-unsafeNewMat4 =
-  IO \world ->
-    let
-      !(# world_, arr_ #) = newAlignedPinnedByteArray# 64# 16# world
-      !(# _world', arr #) = unsafeFreezeByteArray# arr_ world_
-    in
-      (# world, Mat4 arr #)
+foreign import ccall unsafe "Mat4xVec4_SIMD" m4v4simd :: ByteArray# -> ByteArray# -> ByteArray# -> IO ()
 
-{-# INLINE scalarMultiply #-}
-scalarMultiply :: Float -> Mat4 -> Mat4
-scalarMultiply x m =
-  withMat4 m
-    \ m00 m01 m02 m03
-      m10 m11 m12 m13
-      m20 m21 m22 m23
-      m30 m31 m32 m33 ->
-      mat4
-        (m00 * x) (m10 * x) (m20 * x) (m30 * x)
-        (m01 * x) (m11 * x) (m21 * x) (m31 * x)
-        (m02 * x) (m12 * x) (m22 * x) (m32 * x)
-        (m03 * x) (m13 * x) (m23 * x) (m33 * x)
+{- | Matrix - row vector multiplication (post)
 
-foreign import ccall unsafe "Mat4xVec4_SIMD" m4v4simd :: Addr# -> Addr# -> Addr# -> IO ()
-
--- | Matrix - column vector multiplication
+@
+vOut = p <> v <> m !* vIn
+@
+-}
 (!*) :: Coercible a Mat4 => a -> Vec4 -> Vec4
 (!*) (coerce -> Mat4 m) (Vec4 v) = unsafePerformIO do
-  result@(Vec4 o) <- unsafeNewVec4
-  m4v4simd
-    (byteArrayContents# m)
-    (byteArrayContents# v)
-    (byteArrayContents# o)
+  result@(Vec4 o) <- newVec4
+  !() <- m4v4simd m v o
   pure result
 
-  -- withVec4 vec \v1 v2 v3 v4 ->
-  --   withColMajor mat
-  --     \ m11 m12 m13 m14
-  --       m21 m22 m23 m24
-  --       m31 m32 m33 m34
-  --       m41 m42 m43 m44 ->
-  --         vec4
-  --           (m11 * v1 + m12 * v2 + m13 * v3 + m14 * v4)
-  --           (m21 * v1 + m22 * v2 + m23 * v3 + m24 * v4)
-  --           (m31 * v1 + m32 * v2 + m33 * v3 + m34 * v4)
-  --           (m41 * v1 + m42 * v2 + m43 * v3 + m44 * v4)
-
-instance NFData Mat4 where
-  rnf Mat4{} = ()
+infixr 5 !*
 
 instance Semigroup Mat4 where
   {-# INLINE (<>) #-}
@@ -478,60 +316,30 @@ instance Monoid Mat4 where
   mempty = identity
 
 instance Show Mat4 where
-  show = flip withMat4
-    \ m00 m01 m02 m03
-      m10 m11 m12 m13
-      m20 m21 m22 m23
-      m30 m31 m32 m33 ->
-    unlines
-      [ printf "| %.4f %.4f %.4f %.4f |" m00 m01 m02 m03
-      , printf "| %.4f %.4f %.4f %.4f |" m10 m11 m12 m13
-      , printf "| %.4f %.4f %.4f %.4f |" m20 m21 m22 m23
-      , printf "| %.4f %.4f %.4f %.4f |" m30 m31 m32 m33
-      ]
+  show = showColumns
 
-instance Storable Mat4 where
-  sizeOf _mat4 = 64
+showColumns :: Mat4 -> String
+showColumns cm = withColMajor cm
+  \ e0 e1 e2 e3
+    e4 e5 e6 e7
+    e8 e9 eA eB
+    eC eD eE eF ->
+  unlines
+    [ printf  "/ %.4f %.4f %.4f %.4f \\" e0 e1 e2 e3
+    , printf  "| %.4f %.4f %.4f %.4f |"  e4 e5 e6 e7
+    , printf  "| %.4f %.4f %.4f %.4f |"  e8 e9 eA eB
+    , printf "\\ %.4f %.4f %.4f %.4f /"  eC eD eE eF
+    ]
 
-  alignment _mat4 = 16
-
-  {-# INLINE poke #-}
-  poke (Ptr addr) (Mat4 arr) = IO \world ->
-    let
-      world' = copyByteArrayToAddr# arr 0# addr 64# world
-    in
-      (# world', () #)
-
-  {-# INLINE peek #-}
-  peek (Ptr addr) = IO \world ->
-    let
-      !(# world0, arr #)  = newAlignedPinnedByteArray# 64# 16# world
-      world1              = copyAddrToByteArray# addr arr 0# 64# world0
-      !(# world', arr' #) = unsafeFreezeByteArray# arr world1
-    in
-      (# world', Mat4 arr' #)
-
-instance Block Mat4 where
-  type PackedSize Mat4 = 64
-  alignment140 _  = 16
-  sizeOf140       = sizeOfPacked
-  alignment430    = alignment140
-  sizeOf430       = sizeOf140
-  isStruct _      = False
-  read140     = peekDiffOff
-  write140    = pokeDiffOff
-  read430     = read140
-  write430    = write140
-  readPacked  = read140
-  writePacked = write140
-  {-# INLINE alignment140 #-}
-  {-# INLINE sizeOf140 #-}
-  {-# INLINE alignment430 #-}
-  {-# INLINE sizeOf430 #-}
-  {-# INLINE isStruct #-}
-  {-# INLINE read140 #-}
-  {-# INLINE write140 #-}
-  {-# INLINE read430 #-}
-  {-# INLINE write430 #-}
-  {-# INLINE readPacked #-}
-  {-# INLINE writePacked #-}
+showRows :: Mat4 -> String
+showRows rm = withRowMajor rm
+  \ e0 e4 e8 eC
+    e1 e5 e9 eD
+    e2 e6 eA eE
+    e3 e7 eB eF ->
+  unlines
+    [ printf "[ %.4f %.4f %.4f %.4f |" e0 e4 e8 eC
+    , printf "| %.4f %.4f %.4f %.4f |" e1 e5 e9 eD
+    , printf "| %.4f %.4f %.4f %.4f |" e2 e6 eA eE
+    , printf "| %.4f %.4f %.4f %.4f ]" e3 e7 eB eF
+    ]
