@@ -2,11 +2,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Geomancy.Transform
   ( Transform(..)
-  , inverse
+  , Mat4.inverse
 
   , apply
   , (!.)
@@ -32,12 +33,12 @@ module Geomancy.Transform
 import Foreign (Storable(..))
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 
-import Geomancy.Mat4 (Mat4, colMajor, inverse)
+import Geomancy.Mat4 (Mat4, colMajor)
 import Geomancy.Quaternion (Quaternion, withQuaternion)
 import Geomancy.Vec3 (Vec3, vec3, withVec3)
 import Geomancy.Vec4 (fromVec3, withVec4)
+import Geomancy.Mat4 qualified as Mat4
 
-import qualified Geomancy.Mat4 as Mat4
 import Graphics.Gl.Block (Block(..))
 
 newtype Transform = Transform { unTransform :: Mat4 }
@@ -72,7 +73,12 @@ instance Block Transform where
 apply :: Vec3 -> Transform -> Vec3
 apply = flip (!.)
 
--- | Matrix - column vector multiplication with perspective division
+{- | Matrix - row vector multiplication with perspective division
+
+@
+vOut = pv <> translate !. vIn
+@
+-}
 (!.) :: Transform -> Vec3 -> Vec3
 (!.) mat vec =
   withVec4 res \x y z w ->
@@ -80,15 +86,17 @@ apply = flip (!.)
   where
     res = mat Mat4.!* fromVec3 vec 1.0
 
+infixr 5 !.
+
 -- ** Translation
 
 {-# INLINE translate #-}
 translate :: Float -> Float -> Float -> Transform
 translate x y z = colMajor
-  1 0 0 x
-  0 1 0 y
-  0 0 1 z
-  0 0 0 1
+  1 0 0 0
+  0 1 0 0
+  0 0 1 0
+  x y z 1
 
 {-# INLINE translateV #-}
 translateV :: Vec3 -> Transform
@@ -124,55 +132,55 @@ scaleZ z = scale3 1 1 z
 scaleXY :: Float -> Float -> Transform
 scaleXY x y = scale3 x y 1
 
--- ** Euler angle rotations
+-- ** Rotation
 
+{- | Clockwise rotation around positive X axis.
+
+Matches @\a -> rotateQ (axisAngle (vec3 1 0 0) a)@.
+-}
 {-# INLINE rotateX #-}
 rotateX :: Float -> Transform
 rotateX rads = colMajor
-  1 0   0   0
-  0 t11 t21 0
-  0 t12 t22 0
-  0 0   0   1
+  1   0  0 0
+  0   c  s 0
+  0 (-s) c 0
+  0   0  0 1
   where
-    t11 = cost
-    t12 = -sint
-    t21 = sint
-    t22 = cost
+    c = cos rads
+    s = sin rads
 
-    cost = cos rads
-    sint = sin rads
+{- | Clockwise rotation around positive Y axis.
 
+Matches @\a -> rotateQ (axisAngle (vec3 0 1 0) a)@.
+-}
 {-# INLINE rotateY #-}
 rotateY :: Float -> Transform
 rotateY rads = colMajor
-  t00 0 t20 0
-  0   1 0   0
-  t02 0 t22 0
-  0   0 0   1
+    c 0 (-s) 0
+    0 1   0  0
+    s 0   c  0
+    0 0   0  1
   where
-    cost = cos rads
-    sint = sin rads
+    c = cos rads
+    s = sin rads
 
-    t00 = cost
-    t02 = sint
-    t20 = -sint
-    t22 = cost
+{- | Clockwise rotation around positive Z axis.
 
+Can be used for 2D rotation in the XY plane.
+Matches @\a -> rotateQ (axisAngle (vec3 0 0 1) a)@.
+
+In the right-handed "window coordinates" (e.g. top-left corner is 0,0) "right" becomes "down" after 90deg turn.
+-}
 {-# INLINE rotateZ #-}
 rotateZ :: Float -> Transform
 rotateZ rads = colMajor
-  t00 t10 0 0
-  t01 t11 0 0
-  0   0   1 0
-  0   0   0 1
+    c  s 0 0
+  (-s) c 0 0
+    0  0 1 0
+    0  0 0 1
   where
-   t00 = cost
-   t01 = -sint
-   t10 = sint
-   t11 = cost
-
-   cost = cos rads
-   sint = sin rads
+   c = cos rads
+   s = sin rads
 
 {-# INLINE rotateQ #-}
 rotateQ :: Quaternion -> Transform
@@ -195,7 +203,7 @@ dirPos rs t =
       zw = z * w
     in
       colMajor
-        (1 - 2 * (y2 + z2)) (    2 * (xy - zw)) (    2 * (xz + yw)) tx
-        (    2 * (xy + zw)) (1 - 2 * (x2 + z2)) (    2 * (yz - xw)) ty
-        (    2 * (xz - yw)) (    2 * (yz + xw)) (1 - 2 * (x2 + y2)) tz
-         0                   0                   0                  1
+        (1 - 2 * (y2 + z2)) (    2 * (xy + zw)) (    2 * (xz - yw)) 0
+        (    2 * (xy - zw)) (1 - 2 * (x2 + z2)) (    2 * (yz + xw)) 0
+        (    2 * (xz + yw)) (    2 * (yz - xw)) (1 - 2 * (x2 + y2)) 0
+        tx                  ty                  tz                  1

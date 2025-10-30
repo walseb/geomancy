@@ -30,7 +30,7 @@ module Geomancy.Vec4
   , dot
   , normalize
 
-  , unsafeNewVec4
+  , newVec4
   ) where
 
 import GHC.Exts hiding (VecCount(..), toList)
@@ -402,9 +402,9 @@ normalize v =
 
     nearZero a = abs a <= 1e-6
 
-{-# INLINE unsafeNewVec4 #-}
-unsafeNewVec4 :: IO Vec4
-unsafeNewVec4 =
+{-# INLINE newVec4 #-}
+newVec4 :: IO Vec4
+newVec4 =
   IO \world ->
     let
       !(# world_, arr_ #) = newAlignedPinnedByteArray# 16# 16# world

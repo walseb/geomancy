@@ -10,6 +10,7 @@ import qualified Foreign
 
 import qualified Geomancy
 import qualified Geomancy.Mat4
+import qualified Geomancy.Quaternion
 
 import qualified Linear
 import qualified Linear.Matrix
@@ -26,6 +27,10 @@ main = defaultMain
   , bgroup "4x4 poke" $ flip map [10, 100, 1000, 10000] \size ->
       env (clones size mempty Linear.identity) $
         mat4poke size
+
+  , bgroup "quaternion"
+      [ bgroup "euler" quatFromEuler
+      ]
   ]
 
 mat4transpose :: [Benchmark]
@@ -73,3 +78,9 @@ mat4poke size ~(mat4s, m44s) = bgroup (show size)
     pokeLinearTranspose =
       Foreign.withArray (map Linear.transpose m44s) \_ptr ->
         pure ()
+
+quatFromEuler :: [Benchmark]
+quatFromEuler =
+  [ bench "fused" $ whnf (\a -> Geomancy.Quaternion.intrinsic a a a) (pi/3)
+  , bench "composed" $ whnf (\a -> Geomancy.Quaternion.extrinsic a a a) (pi/3)
+  ]

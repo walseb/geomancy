@@ -1,12 +1,9 @@
-resolver: https://gitlab.com/keid/meta/-/raw/main/resolvers/keid-engine-2024-06-24.yaml
+resolver: https://gitlab.com/keid/meta/-/raw/main/resolvers/keid-engine-2025-05-10.yaml
 
 packages:
 - .
 
-extra-deps:
-- gl-block-1.0
+# extra-deps:
+# - gl-block-1.0
 
 system-ghc: true
-ghc-options:
-  "$everything": -split-sections -j2
-  "$locals": -split-sections -j8
