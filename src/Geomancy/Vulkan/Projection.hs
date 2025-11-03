@@ -51,17 +51,29 @@ orthoRH near far width height =
   colMajor
     sx 0 0 0
     0 sy 0 0
-    0  0 z w
-    0  0 0 1
+    0  0 z 0
+    0  0 w 1
   where
     sx = 2 / width
     sy = 2 / height
     z = 1 / (far - near)
-    w = near * (near - far)
+    w = near / (near - far)
 
 {- | Reverse-depth orthographic projection centered on @0,0@
 
 Can be used in the same render pass with reverseDepthRH/VK_COMPARE_OP_GREATER pipelines.
+
+@reverseDepthOrthoRH 0 1 800 600@ will map @vec3 400 300 0@ to @vec3 0 0 1@.
 -}
 reverseDepthOrthoRH :: Float -> Float -> Float -> Float -> Transform
-reverseDepthOrthoRH near far = orthoRH far near
+reverseDepthOrthoRH near far width height =
+  colMajor
+    sx 0 0 0
+    0 sy 0 0
+    0  0 z 0
+    0  0 w 1
+  where
+    sx = 2 / width
+    sy = 2 / height
+    z = 1 / (near - far)
+    w = far / (far - near)

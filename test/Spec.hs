@@ -137,14 +137,14 @@ prop_projection_orthoRH_identity = withTests 1 $ property do
 
 prop_projection_reverseDepthOrthoRH :: Property
 prop_projection_reverseDepthOrthoRH = withTests 1 $ property do
-  let t = Projection.reverseDepthOrthoRH 0 1 800 600
+  let t = Projection.reverseDepthOrthoRH 1 10 800 600
   annotateShow t
 
-  vec4 0 0 0 1 === t !* vec4 0 0 0 1
-  vec4 1 1 0 1 === t !* vec4 400 300 0 1
-  vec4 (-1/400) (-1/300) 0 1 === t !* vec4 (-1) (-1) 0 1
-
-  -- vec4 1 1 1 1 === t !* vec4 1 1 1 1
+  vec4 0 0 1 1 === t !* vec4 0 0 1 1 -- center/near
+  vec4 0 0 0 1 === t !* vec4 0 0 10 1 -- center/far
+  vec4 1 1 0 1 === t !* vec4 400 300 10 1 -- edge/far
+  vec4 (-1/400) (-1/300) 1 1 === t !* vec4 (-1) (-1) 1 1 -- step/near
+  vec4 (1/400) (1/300) 0 1 === t !* vec4 1 1 10 1 -- step/far
 
 toNDC :: Vec4 -> Vec3
 toNDC v = withVec4 v \x y z w -> vec3 (x/w) (y/w) (z/w)
