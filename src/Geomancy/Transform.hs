@@ -93,10 +93,10 @@ infixr 5 !.
 {-# INLINE translate #-}
 translate :: Float -> Float -> Float -> Transform
 translate x y z = colMajor
-  1 0 0 0
-  0 1 0 0
-  0 0 1 0
-  x y z 1
+  1 0 0 x
+  0 1 0 y
+  0 0 1 z
+  0 0 0 1
 
 {-# INLINE translateV #-}
 translateV :: Vec3 -> Transform
@@ -140,11 +140,12 @@ Matches @\a -> rotateQ (axisAngle (vec3 1 0 0) a)@.
 -}
 {-# INLINE rotateX #-}
 rotateX :: Float -> Transform
-rotateX rads = colMajor
-  1   0  0 0
-  0   c  s 0
-  0 (-s) c 0
-  0   0  0 1
+rotateX rads =
+  colMajor
+    1 0   0  0
+    0 c (-s) 0
+    0 s   c  0
+    0 0   0  1
   where
     c = cos rads
     s = sin rads
@@ -155,11 +156,12 @@ Matches @\a -> rotateQ (axisAngle (vec3 0 1 0) a)@.
 -}
 {-# INLINE rotateY #-}
 rotateY :: Float -> Transform
-rotateY rads = colMajor
-    c 0 (-s) 0
-    0 1   0  0
-    s 0   c  0
-    0 0   0  1
+rotateY rads =
+  colMajor
+    c  0 s 0
+    0  1 0 0
+  (-s) 0 c 0
+    0  0 0 1
   where
     c = cos rads
     s = sin rads
@@ -173,11 +175,12 @@ In the right-handed "window coordinates" (e.g. top-left corner is 0,0) "right" b
 -}
 {-# INLINE rotateZ #-}
 rotateZ :: Float -> Transform
-rotateZ rads = colMajor
-    c  s 0 0
-  (-s) c 0 0
-    0  0 1 0
-    0  0 0 1
+rotateZ rads =
+  colMajor
+    c (-s) 0 0
+    s   c  0 0
+    0   0  1 0
+    0   0  0 1
   where
    c = cos rads
    s = sin rads
@@ -203,7 +206,7 @@ dirPos rs t =
       zw = z * w
     in
       colMajor
-        (1 - 2 * (y2 + z2)) (    2 * (xy + zw)) (    2 * (xz - yw)) 0
-        (    2 * (xy - zw)) (1 - 2 * (x2 + z2)) (    2 * (yz + xw)) 0
-        (    2 * (xz + yw)) (    2 * (yz - xw)) (1 - 2 * (x2 + y2)) 0
-        tx                  ty                  tz                  1
+        (1 - 2 * (y2 + z2)) (    2 * (xy - zw)) (    2 * (xz + yw)) tx
+        (    2 * (xy + zw)) (1 - 2 * (x2 + z2)) (    2 * (yz - xw)) ty
+        (    2 * (xz - yw)) (    2 * (yz + xw)) (1 - 2 * (x2 + y2)) tz
+        0                   0                   0                    1

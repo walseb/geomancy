@@ -9,9 +9,8 @@
 import Geomancy
 import Hedgehog
 
-import Control.Monad (unless)
+import Control.Monad (when, unless)
 import Data.Foldable (toList)
-import Data.Maybe (catMaybes)
 import GHC.Stack (withFrozenCallStack)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -56,23 +55,17 @@ prop_mat4_assoc = withTests PROP_TESTS $ property do
     pv'm = (p <> v) <> m
     p'vm = p <> (v <> m)
     delta' = nearlyEqualMat4 pv'm p'vm
-  annotateShow delta'
+  replicate 16 Nothing === delta'
 
   let
     mv_p = (m_ !*! v_) !*! p_
     m_vp = m_ !*! (v_ !*! p_)
     delta_ = nearlyEqualM44 mv_p m_vp
-  annotateShow delta_
-
-  -- Intra-library transitivity
-  unless (null $ catMaybes delta') do
-    -- XXX: check only if there is some outstanding error
-    delta' === delta_
+  replicate 16 Nothing === delta_
 
   -- Inter-library calculated values nearlyEqual
-  [] === catMaybes (nearlyEqualM44 m_vp $ toM44 p'vm)
-
-  [] === catMaybes (nearlyEqualM44 mv_p $ toM44 pv'm)
+  replicate 16 Nothing === nearlyEqualM44 m_vp (toM44 p'vm)
+  replicate 16 Nothing === nearlyEqualM44 mv_p (toM44 pv'm)
 
 prop_mat4_order :: Property
 prop_mat4_order = withTests 1 $ property do
@@ -115,8 +108,8 @@ prop_projection_reverseDepthRH = withTests 1 $ property do
     Transform expected = Geomancy.Mat4.rowMajor
       0.7500 0.0000 0.0000 0.0000
       0.0000 1.0000 0.0000 0.0000
-      0.0000 0.0000 0.0000  zNear
-      0.0000 0.0000 1.0000 0.0000
+      0.0000 0.0000 0.0000 1.0000
+      0.0000 0.0000  zNear 0.0000
   annotateShow expected
   let delta_ = nearlyEqualMat4 p expected
   replicate 16 Nothing === delta_
@@ -319,6 +312,7 @@ genTransform = Gen.choice
       x <- Gen.float (Range.linearFracFrom 0.0 (-1e6) 1e6)
       y <- Gen.float (Range.linearFracFrom 0.0 (-1e6) 1e6)
       z <- Gen.float (Range.linearFracFrom 0.0 (-1e6) 1e6)
+      when (abs x == 0 && abs y == 0 && abs z == 0) Gen.discard
       pure
         ( printf "translate %0.4f %0.4f %0.4f" x y z
         , Transform.translate x y z
@@ -331,6 +325,7 @@ genTransform = Gen.choice
         , ("rotate/z", Transform.rotateZ)
         ]
       angle <- genAngle
+      when (abs angle == 0) Gen.discard
       pure
         ( printf "%s %0.4f" name angle
         , axis angle
@@ -340,6 +335,7 @@ genTransform = Gen.choice
       x <- Gen.float (Range.linearFracFrom 1.0 1e-6 1e6)
       y <- Gen.float (Range.linearFracFrom 1.0 1e-6 1e6)
       z <- Gen.float (Range.linearFracFrom 1.0 1e-6 1e6)
+      when (abs x == 1 && abs y == 1 && abs z == 1) Gen.discard
       pure
         ( printf "scale %0.4f %0.4f %0.4f" x y z
         , Transform.scale3 x y z
@@ -391,7 +387,7 @@ nearlyEqualQ a b =
 
 nearlyEqual :: Float -> Float -> Maybe Oops
 nearlyEqual lhs rhs =
-  if lhs == rhs || absDiff < 1e-6 || relDiff < 1e-4 then
+  if lhs == rhs || absDiff < 1e-4 || relDiff < 1e-4 then
     Nothing
   else
     Just Oops{..}

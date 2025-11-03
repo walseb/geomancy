@@ -26,10 +26,10 @@ lookAtRH eye target up =
   withVec3 up' \ux uy uz ->
   withVec3 fwd \fx fy fz ->
   colMajor
-      rx    ux    fx  0
-      ry    uy    fy  0
-      rz    uz    fz  0
-    (-er) (-eu) (-ef) 1
+    rx ry rz (-er)
+    ux uy uz (-eu)
+    fx fy fz (-ef)
+     0  0  0    1
   where
     fwd = normalize (target - eye)
     rgt = normalize (cross fwd up)

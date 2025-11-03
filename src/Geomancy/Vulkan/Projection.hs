@@ -31,10 +31,10 @@ reverseDepthRH
   -> Transform
 reverseDepthRH fovRads zn width height =
   colMajor
-    sx  0  0  0
-    0  sy  0  0
-    0   0  0  1
-    0   0 zn  0
+    sx  0 0  0
+    0  sy 0  0
+    0   0 0 zn
+    0   0 1  0
   where
     sx = sy * recipAspect
       where
@@ -51,8 +51,8 @@ orthoRH near far width height =
   colMajor
     sx 0 0 0
     0 sy 0 0
-    0  0 z 0
-    0  0 w 1
+    0  0 z w
+    0  0 0 1
   where
     sx = 2 / width
     sy = 2 / height
@@ -70,8 +70,8 @@ reverseDepthOrthoRH near far width height =
   colMajor
     sx 0 0 0
     0 sy 0 0
-    0  0 z 0
-    0  0 w 1
+    0  0 z w
+    0  0 0 1
   where
     sx = 2 / width
     sy = 2 / height

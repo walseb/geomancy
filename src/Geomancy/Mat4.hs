@@ -55,10 +55,10 @@ import qualified Data.Foldable as Foldable
 import Geomancy.Vec4 (Vec4(..), newVec4)
 
 toListColMajor :: Coercible a Mat4 => a -> [Float]
-toListColMajor = toListMemory . coerce
+toListColMajor = toListTrans . coerce
 
 toListColMajor2d :: Coercible a Mat4 => a -> [[Float]]
-toListColMajor2d = toList2dMemory . coerce
+toListColMajor2d = toList2dTrans . coerce
 
 {- | Construct 'Mat4' from @row@ notation.
 -}
@@ -74,12 +74,12 @@ rowMajor
   e4 e5 e6 e7
   e8 e9 eA eB
   eC eD eE eF =
-    -- Transpose on store
+    -- just store
     coerce $ fromMemory
-      e0 e4 e8 eC
-      e1 e5 e9 eD
-      e2 e6 eA eE
-      e3 e7 eB eF
+      e0 e1 e2 e3
+      e4 e5 e6 e7
+      e8 e9 eA eB
+      eC eD eE eF
 
 {- |
   Build a Mat4 from a list-of-lists kind of container
@@ -104,10 +104,10 @@ fromRowMajor2d rows =
       withRow r2 \e8 e9 eA eB ->
       withRow r3 \eC eD eE eF ->
         Just . coerce @a $ rowMajor
-          e0 e4 e8 eC
-          e1 e5 e9 eD
-          e2 e6 eA eE
-          e3 e7 eB eF
+          e0 e1 e2 e3
+          e4 e5 e6 e7
+          e8 e9 eA eB
+          eC eD eE eF
     _ ->
       Nothing
   where
@@ -137,11 +137,11 @@ withRowMajor m f = withMemory (coerce m)
     e4 e5 e6 e7
     e8 e9 eA eB
     eC eD eE eF ->
-  f -- transposed element order
-    e0 e4 e8 eC
-    e1 e5 e9 eD
-    e2 e6 eA eE
-    e3 e7 eB eF
+  f -- preserved element order
+    e0 e1 e2 e3
+    e4 e5 e6 e7
+    e8 e9 eA eB
+    eC eD eE eF
 
 {- | Construct a 'Mat4' from @column@ notation.
 -}
@@ -154,10 +154,10 @@ colMajor
   -> Float -> Float -> Float -> Float
   -> a
 colMajor
-  e0 e1 e2 e3
-  e4 e5 e6 e7
-  e8 e9 eA eB
-  eC eD eE eF =
+  e0 e4 e8 eC
+  e1 e5 e9 eD
+  e2 e6 eA eE
+  e3 e7 eB eF =
     coerce $ fromMemory
       e0 e1 e2 e3
       e4 e5 e6 e7
@@ -179,25 +179,25 @@ withColMajor
     )
   -> r
 withColMajor m f = withMemory (coerce m)
-  \ e0 e1 e2 e3
-    e4 e5 e6 e7
-    e8 e9 eA eB
-    eC eD eE eF ->
-  f -- matching element order
+  \ e0 e4 e8 eC
+    e1 e5 e9 eD
+    e2 e6 eA eE
+    e3 e7 eB eF ->
+  f -- transposed element order
     e0 e1 e2 e3
     e4 e5 e6 e7
     e8 e9 eA eB
     eC eD eE eF
 
 toListRowMajor :: Coercible a Mat4 => a -> [Float]
-toListRowMajor = toListTrans . coerce
+toListRowMajor = toListMemory . coerce
 
 toListRowMajor2d :: Coercible a Mat4 => a -> [[Float]]
-toListRowMajor2d = toList2dTrans . coerce
+toListRowMajor2d = toList2dMemory . coerce
 
 det :: forall a . (Coercible Mat4 a, Coercible Mat4 a) => a -> Float
 det m =
-  withColMajor (coerce @_ @a m)
+  withRowMajor (coerce @_ @a m)
     \ m00 m01 m02 m03
       m10 m11 m12 m13
       m20 m21 m22 m23
@@ -228,7 +228,7 @@ det m =
 -}
 inverse :: forall a . (Coercible Mat4 a, Coercible Mat4 a) => a -> a
 inverse m =
-  coerce @a $ withColMajor (coerce @_ @a m)
+  coerce @a $ withRowMajor (coerce @_ @a m)
     \ m00 m01 m02 m03
       m10 m11 m12 m13
       m20 m21 m22 m23
@@ -276,7 +276,7 @@ inverse m =
           i32 = (-m30 * s3 + m31 * s1 - m32 * s0) * invDet
           i33 = ( m20 * s3 - m21 * s1 + m22 * s0) * invDet
         in
-          colMajor
+          rowMajor
             i00 i01 i02 i03
             i10 i11 i12 i13
             i20 i21 i22 i23
@@ -293,7 +293,7 @@ matrixProduct (Mat4 l) (Mat4 r) = unsafePerformIO do
 
 foreign import ccall unsafe "Mat4xVec4_SIMD" m4v4simd :: ByteArray# -> ByteArray# -> ByteArray# -> IO ()
 
-{- | Matrix - row vector multiplication (post)
+{- | Matrix - column vector multiplication (post)
 
 @
 vOut = p <> v <> m !* vIn
@@ -320,26 +320,26 @@ instance Show Mat4 where
 
 showColumns :: Mat4 -> String
 showColumns cm = withColMajor cm
-  \ e0 e1 e2 e3
-    e4 e5 e6 e7
-    e8 e9 eA eB
-    eC eD eE eF ->
-  unlines
-    [ printf  "/ %.4f %.4f %.4f %.4f \\" e0 e1 e2 e3
-    , printf  "| %.4f %.4f %.4f %.4f |"  e4 e5 e6 e7
-    , printf  "| %.4f %.4f %.4f %.4f |"  e8 e9 eA eB
-    , printf "\\ %.4f %.4f %.4f %.4f /"  eC eD eE eF
-    ]
-
-showRows :: Mat4 -> String
-showRows rm = withRowMajor rm
   \ e0 e4 e8 eC
     e1 e5 e9 eD
     e2 e6 eA eE
     e3 e7 eB eF ->
   unlines
-    [ printf "[ %.4f %.4f %.4f %.4f |" e0 e4 e8 eC
-    , printf "| %.4f %.4f %.4f %.4f |" e1 e5 e9 eD
-    , printf "| %.4f %.4f %.4f %.4f |" e2 e6 eA eE
-    , printf "| %.4f %.4f %.4f %.4f ]" e3 e7 eB eF
+    [ printf  "/ %.4f %.4f %.4f %.4f \\" e0 e4 e8 eC
+    , printf  "| %.4f %.4f %.4f %.4f |"  e1 e5 e9 eD
+    , printf  "| %.4f %.4f %.4f %.4f |"  e2 e6 eA eE
+    , printf "\\ %.4f %.4f %.4f %.4f /"  e3 e7 eB eF
+    ]
+
+showRows :: Mat4 -> String
+showRows rm = withRowMajor rm
+  \ e0 e1 e2 e3
+    e4 e5 e6 e7
+    e8 e9 eA eB
+    eC eD eE eF ->
+  unlines
+    [ printf "[ %.4f %.4f %.4f %.4f |" e0 e1 e2 e3
+    , printf "| %.4f %.4f %.4f %.4f |" e4 e5 e6 e7
+    , printf "| %.4f %.4f %.4f %.4f |" e8 e9 eA eB
+    , printf "| %.4f %.4f %.4f %.4f ]" eC eD eE eF
     ]
