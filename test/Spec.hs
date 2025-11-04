@@ -9,7 +9,7 @@
 import Geomancy
 import Hedgehog
 
-import Control.Monad (when, unless)
+import Control.Monad (when)
 import Data.Foldable (toList)
 import GHC.Stack (withFrozenCallStack)
 import Hedgehog.Gen qualified as Gen
@@ -282,6 +282,32 @@ intrinsicComposed roll pitch yaw =
   Geomancy.Quaternion.axisAngle (vec3 0 1 0) yaw *
   Geomancy.Quaternion.axisAngle (vec3 1 0 0) pitch *
   Geomancy.Quaternion.axisAngle (vec3 0 0 1) roll
+
+prop_transform_node :: Property
+prop_transform_node = withTests 1 $ property do
+  let t = vec3 2 3 5
+  let r = intrinsicComposed 0 0 (pi/7)
+  let s = 11
+  let dps = Transform.node t r s
+  let node = trs t r s
+  let v = vec3 0 0 1
+  replicate 3 Nothing === nearlyEqualVec3 (dps !. v) (node !. v)
+
+trs :: Vec3 -> Quaternion -> Vec3 -> Transform
+trs t r s = mconcat
+  [ Transform.translateV t
+  , Transform.rotateQ r
+  , Transform.scaleV s
+  ]
+
+prop_transform_order :: Property
+prop_transform_order = withTests 1 $ property do
+  let parent = Transform.node (vec3 4 5 6) (intrinsicComposed 0 0 (pi/6)) 2
+  let local = Transform.node (vec3 7 8 9) (intrinsicComposed 0 (pi/6) 0) (1/3)
+  let precomp = parent <> local !. vec3 0 0 1
+  let nocomp = parent !. local !. vec3 0 0 1
+
+  replicate 3 Nothing === nearlyEqualVec3 precomp nocomp
 
 forAllTransform :: PropertyT IO (Geomancy.Mat4.Mat4, Linear.M44 Float)
 forAllTransform = withFrozenCallStack do

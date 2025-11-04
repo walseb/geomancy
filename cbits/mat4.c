@@ -3,15 +3,15 @@
 #include <xmmintrin.h>
 
 void Mat4xMat4_SIMD(float *A, float *B, float *O) {
-  __m128 row0 = _mm_load_ps(&B[0]);
-  __m128 row1 = _mm_load_ps(&B[4]);
-  __m128 row2 = _mm_load_ps(&B[8]);
-  __m128 row3 = _mm_load_ps(&B[12]);
+  __m128 row0 = _mm_load_ps(&A[0]);
+  __m128 row1 = _mm_load_ps(&A[4]);
+  __m128 row2 = _mm_load_ps(&A[8]);
+  __m128 row3 = _mm_load_ps(&A[12]);
   for(int i=0; i<4; i++) {
-    __m128 brod0 = _mm_set1_ps(A[4*i + 0]);
-    __m128 brod1 = _mm_set1_ps(A[4*i + 1]);
-    __m128 brod2 = _mm_set1_ps(A[4*i + 2]);
-    __m128 brod3 = _mm_set1_ps(A[4*i + 3]);
+    __m128 brod0 = _mm_set1_ps(B[4*i + 0]);
+    __m128 brod1 = _mm_set1_ps(B[4*i + 1]);
+    __m128 brod2 = _mm_set1_ps(B[4*i + 2]);
+    __m128 brod3 = _mm_set1_ps(B[4*i + 3]);
     __m128 row = _mm_add_ps(
       _mm_add_ps(
         _mm_mul_ps(brod0, row0),
@@ -86,28 +86,28 @@ void Mat4xMat4_SIMD(float *A, float *B, float *O) {
     float32x4_t C3 = vmovq_n_f32(0);
 
     // Multiply accumulate in 4x1 blocks to output row
-    C0 = vfmaq_laneq_f32(C0, B0, A0, 0);
-    C0 = vfmaq_laneq_f32(C0, B1, A0, 1);
-    C0 = vfmaq_laneq_f32(C0, B2, A0, 2);
-    C0 = vfmaq_laneq_f32(C0, B3, A0, 3);
+    C0 = vfmaq_laneq_f32(C0, A0, B0, 0);
+    C0 = vfmaq_laneq_f32(C0, A1, B0, 1);
+    C0 = vfmaq_laneq_f32(C0, A2, B0, 2);
+    C0 = vfmaq_laneq_f32(C0, A3, B0, 3);
     vst1q_f32(O, C0);
 
-    C1 = vfmaq_laneq_f32(C1, B0, A1, 0);
-    C1 = vfmaq_laneq_f32(C1, B1, A1, 1);
-    C1 = vfmaq_laneq_f32(C1, B2, A1, 2);
-    C1 = vfmaq_laneq_f32(C1, B3, A1, 3);
+    C1 = vfmaq_laneq_f32(C1, A0, B1, 0);
+    C1 = vfmaq_laneq_f32(C1, A1, B1, 1);
+    C1 = vfmaq_laneq_f32(C1, A2, B1, 2);
+    C1 = vfmaq_laneq_f32(C1, A3, B1, 3);
     vst1q_f32(&O[4], C1);
 
-    C2 = vfmaq_laneq_f32(C2, B0, A2, 0);
-    C2 = vfmaq_laneq_f32(C2, B1, A2, 1);
-    C2 = vfmaq_laneq_f32(C2, B2, A2, 2);
-    C2 = vfmaq_laneq_f32(C2, B3, A2, 3);
+    C2 = vfmaq_laneq_f32(C2, A0, B2, 0);
+    C2 = vfmaq_laneq_f32(C2, A1, B2, 1);
+    C2 = vfmaq_laneq_f32(C2, A2, B2, 2);
+    C2 = vfmaq_laneq_f32(C2, A3, B2, 3);
     vst1q_f32(&O[8], C2);
 
-    C3 = vfmaq_laneq_f32(C3, B0, A3, 0);
-    C3 = vfmaq_laneq_f32(C3, B1, A3, 1);
-    C3 = vfmaq_laneq_f32(C3, B2, A3, 2);
-    C3 = vfmaq_laneq_f32(C3, B3, A3, 3);
+    C3 = vfmaq_laneq_f32(C3, A0, B3, 0);
+    C3 = vfmaq_laneq_f32(C3, A1, B3, 1);
+    C3 = vfmaq_laneq_f32(C3, A2, B3, 2);
+    C3 = vfmaq_laneq_f32(C3, A3, B3, 3);
     vst1q_f32(&O[12], C3);
 
 }

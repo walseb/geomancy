@@ -26,8 +26,10 @@ module Geomancy.Transform
   , scaleZ
   , scaleXY
   , scale3
+  , scaleV
 
   , dirPos
+  , node
   ) where
 
 import Foreign (Storable(..))
@@ -132,6 +134,10 @@ scaleZ z = scale3 1 1 z
 scaleXY :: Float -> Float -> Transform
 scaleXY x y = scale3 x y 1
 
+{-# INLINE scaleV #-}
+scaleV :: Vec3 -> Transform
+scaleV s = withVec3 s scale3
+
 -- ** Rotation
 
 {- | Clockwise rotation around positive X axis.
@@ -210,3 +216,8 @@ dirPos rs t =
         (    2 * (xy + zw)) (1 - 2 * (x2 + z2)) (    2 * (yz - xw)) ty
         (    2 * (xz - yw)) (    2 * (yz + xw)) (1 - 2 * (x2 + y2)) tz
         0                   0                   0                    1
+
+node :: Vec3 -> Quaternion -> Vec3 -> Transform
+node t r s
+ | s == 1.0 = dirPos r t
+ | otherwise = dirPos r t <> scaleV s -- TODO: finish derivation

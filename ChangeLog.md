@@ -4,10 +4,11 @@
 
 > `[0]` releases without row/col-major, handedness, and counter/clockwise confusion.
 
-This release brings consistency around the transform stack.
+This release brings sanity and consistency around the transform stack.
 - `Transform`s have proper *col-major* definitions.
 - Operation ordering follows the GLSL convention.
   * The composition order is `(p <> v <> m <> ...)` (from global to local).
+    Reverse your transforms to adjust.
   * The application order is `m !* v` (with the operators becoming infixr 5, just under the `<>`).
     It will do `Mᵀ * v` inside for SIMD reasons and to match what GLSL does for its `M * v` ops.
 - `Geomancy.Vulkan.Projection` is right-handed, BUT produces *reverse-depth* range ([1; 0], In 3D infinite-Z converges to 0).
