@@ -5,19 +5,21 @@
 > `[0]` releases without row/col-major, handedness, and counter/clockwise confusion.
 
 This release brings consistency around the transform stack.
-- `Mat4` and `Transform` are *col-major*. You can still *define* transformations using `rowMajor` constructor though.
+- `Transform`s have proper *col-major* definitions.
+- Operation ordering follows the GLSL convention.
   * The composition order is `(p <> v <> m <> ...)` (from global to local).
   * The application order is `m !* v` (with the operators becoming infixr 5, just under the `<>`).
-- `Geomancy.Vulkan.Projection` is right-handed, but produces *reverse-depth* ([1; 0], In 3D infinite-Z converges to 0).
+    It will do `Mᵀ * v` inside for SIMD reasons and to match what GLSL does for its `M * v` ops.
+- `Geomancy.Vulkan.Projection` is right-handed, BUT produces *reverse-depth* range ([1; 0], In 3D infinite-Z converges to 0).
   * Replace your depth tests with `OP_GREATER` and clear to `0.0` - get better precision for your migration troubles.
-- `Geomancy.Vulkan.View.lookAt` is *right-handed*, with +Z being forward.
+- `Geomancy.Vulkan.View` is *right-handed*, with +Z being forward.
   * The intended up vector is still `vec3 0 (-1) 0` -- +Y down.
     Silly as it sounds, this matches the XY plane of the window with XY plane in front of a "first person" camera.
 - Axis rotations (using `rotateQ`) will appear clockwise when looking along the axis.
 - Angle rotations follow Tait-Bryan angles (heading/elevation/bank or yaw/pitch/roll) in the y-x-z frame.
   * `rotateZ (time * rate)` will follow the clock hands in 2D scenes and roll in 3D.
-  * `rotateX` will follow the sun from sunrise to sunset, increasing elevation / pitching UP.
-  * `rotateY` will turn you right, increasing yaw/heading eastwards.
+  * `rotateX` will follow the sun from sunrise to sunset, pitching UP / increasing elevation.
+  * `rotateY` will turn you right, increasing yaw / heading eastwards.
 - You're of course free to define your own transforms, just copy the modules and tune to your liking.
   Just make sure that you use matching row/column constructors and the math layer will do the rest, fast.
 
