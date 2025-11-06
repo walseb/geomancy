@@ -33,6 +33,7 @@ library:
   - gl-block
   - mono-traversable
   - ptrdiff
+  - webcolor-labels
 
 tests:
   geomancy-test:

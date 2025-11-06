@@ -23,6 +23,7 @@ This release brings sanity and consistency around the transform stack.
   * `rotateY` will turn you right, increasing yaw / heading eastwards.
 - You're of course free to define your own transforms, just copy the modules and tune to your liking.
   Just make sure that you use matching row/column constructors and the math layer will do the rest, fast.
+- Added `webcolor-labels` instances for UVec3/Vec3/Vec4.
 
 ## 0.2.6.0
 

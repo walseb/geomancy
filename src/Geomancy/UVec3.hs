@@ -1,8 +1,12 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -28,6 +32,8 @@ import Data.Word (Word32)
 import Foreign (Storable(..))
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import GHC.Ix (Ix(..))
+import GHC.OverloadedLabels (IsLabel(..))
+import WebColor.Labels (IsWebColor(..))
 
 import Geomancy.Elementwise (Elementwise(..))
 import Graphics.Gl.Block (Block(..))
@@ -67,6 +73,12 @@ fromTuple (a, b, c) = uvec3 a b c
 dot :: UVec3 -> UVec3 -> Word32
 dot (UVec3 l1 l2 l3) (UVec3 r1 r2 r3) =
   l1 * r1 + l2 * r2 + l3 * r3
+
+instance IsWebColor s => IsLabel s UVec3 where
+  {-# INLINE fromLabel #-}
+  fromLabel =
+    webColor @s \r g b ->
+      uvec3 (fromIntegral r) (fromIntegral g) (fromIntegral b)
 
 instance NFData UVec3 where
   rnf UVec3{} = ()

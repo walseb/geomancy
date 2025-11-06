@@ -3,7 +3,7 @@ resolver: https://gitlab.com/keid/meta/-/raw/main/resolvers/keid-engine-2025-05-
 packages:
 - .
 
-# extra-deps:
-# - gl-block-1.0
+extra-deps:
+- webcolor-labels-0.1.0.0
 
 system-ghc: true

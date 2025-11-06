@@ -1,13 +1,16 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE DerivingStrategies #-}
 
 -- | Specialized and inlined @V3 Float@.
 
@@ -40,9 +43,11 @@ import Control.DeepSeq (NFData(rnf))
 import Data.Coerce (Coercible, coerce)
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Data.VectorSpace (VectorSpace)
+import Data.VectorSpace qualified as VectorSpace
 import Foreign (Storable(..), castPtr)
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
-import qualified Data.VectorSpace as VectorSpace
+import GHC.OverloadedLabels (IsLabel(..))
+import WebColor.Labels (IsWebColor(..))
 
 import Geomancy.Elementwise (Elementwise(..))
 import Graphics.Gl.Block (Block(..))
@@ -85,6 +90,12 @@ fromVec2 xy z =
 {-# INLINE fromTuple #-}
 fromTuple :: Coercible Vec3 a => (Float, Float, Float) -> a
 fromTuple (x, y, z) = coerce (vec3 x y z)
+
+instance IsWebColor s => IsLabel s Vec3 where
+  {-# INLINE fromLabel #-}
+  fromLabel =
+    webColor @s \r g b ->
+      vec3 (fromIntegral r) (fromIntegral g) (fromIntegral b)
 
 instance NFData Vec3 where
   rnf Vec3{} = ()

@@ -2,9 +2,13 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UnliftedFFITypes #-}
@@ -38,11 +42,13 @@ import GHC.Exts hiding (VecCount(..), toList)
 import Control.DeepSeq (NFData(rnf))
 import Data.MonoTraversable (Element, MonoFunctor(..), MonoPointed(..))
 import Data.VectorSpace (VectorSpace)
+import Data.VectorSpace qualified as VectorSpace
 import Foreign (Storable(..))
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import GHC.IO (IO(..))
+import GHC.OverloadedLabels (IsLabel(..))
 import Text.Printf (printf)
-import qualified Data.VectorSpace as VectorSpace
+import WebColor.Labels (IsWebColorAlpha(..))
 
 import Geomancy.Elementwise (Elementwise(..))
 import Graphics.Gl.Block (Block(..))
@@ -135,6 +141,12 @@ fromVec3 xyz w =
 {-# INLINE fromTuple #-}
 fromTuple :: (Float, Float, Float, Float) -> Vec4
 fromTuple (x, y, z, w) = vec4 x y z w
+
+instance IsWebColorAlpha s => IsLabel s Vec4 where
+  {-# INLINE fromLabel #-}
+  fromLabel =
+    webColorAlpha @s \r g b a ->
+      vec4 (fromIntegral r) (fromIntegral g) (fromIntegral b) (fromIntegral a)
 
 instance NFData Vec4 where
   rnf Vec4{} = ()
