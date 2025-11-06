@@ -95,7 +95,10 @@ instance IsWebColor s => IsLabel s Vec3 where
   {-# INLINE fromLabel #-}
   fromLabel =
     webColor @s \r g b ->
-      vec3 (fromIntegral r) (fromIntegral g) (fromIntegral b)
+      vec3
+        (fromIntegral r / 255)
+        (fromIntegral g / 255)
+        (fromIntegral b / 255)
 
 instance NFData Vec3 where
   rnf Vec3{} = ()

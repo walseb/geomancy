@@ -146,7 +146,11 @@ instance IsWebColorAlpha s => IsLabel s Vec4 where
   {-# INLINE fromLabel #-}
   fromLabel =
     webColorAlpha @s \r g b a ->
-      vec4 (fromIntegral r) (fromIntegral g) (fromIntegral b) (fromIntegral a)
+      vec4
+        (fromIntegral r / 255)
+        (fromIntegral g / 255)
+        (fromIntegral b / 255)
+        (fromIntegral a / 255)
 
 instance NFData Vec4 where
   rnf Vec4{} = ()
