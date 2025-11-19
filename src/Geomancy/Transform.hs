@@ -1,9 +1,14 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE TypeFamilies #-}
+
+#ifdef TH_LIFT
+{-# LANGUAGE DeriveLift #-}
+#endif
 
 module Geomancy.Transform
   ( Transform(..)
@@ -35,6 +40,10 @@ module Geomancy.Transform
 import Foreign (Storable(..))
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 
+#ifdef TH_LIFT
+import Language.Haskell.TH.Syntax (Lift)
+#endif
+
 import Geomancy.Mat4 (Mat4, colMajor)
 import Geomancy.Quaternion (Quaternion, withQuaternion)
 import Geomancy.Vec3 (Vec3, vec3, withVec3)
@@ -45,6 +54,9 @@ import Graphics.Gl.Block (Block(..))
 
 newtype Transform = Transform { unTransform :: Mat4 }
   deriving newtype (Show, Semigroup, Monoid, Storable)
+#ifdef TH_LIFT
+  deriving Lift
+#endif
 
 instance Block Transform where
   type PackedSize Transform = 64

@@ -1,5 +1,10 @@
 # Changelog for geomancy
 
+## 0.3.0.1
+
+- Added Lift instaces for data.
+  Opt-out by disabling the `th-lift` flag.
+
 ## 0.3.0.0
 
 > `[0]` releases without row/col-major, handedness, and counter/clockwise confusion.

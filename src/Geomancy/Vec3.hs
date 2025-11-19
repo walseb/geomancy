@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -11,6 +12,11 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
+
+#ifdef TH_LIFT
+{-# LANGUAGE DeriveLift #-}
+{-# LANGUAGE DerivingStrategies #-}
+#endif
 
 -- | Specialized and inlined @V3 Float@.
 
@@ -49,6 +55,10 @@ import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import GHC.OverloadedLabels (IsLabel(..))
 import WebColor.Labels (IsWebColor(..))
 
+#ifdef TH_LIFT
+import Language.Haskell.TH.Syntax (Lift(..))
+#endif
+
 import Geomancy.Elementwise (Elementwise(..))
 import Graphics.Gl.Block (Block(..))
 import Geomancy.Gl.Funs (GlModf(..), GlNearest)
@@ -59,6 +69,9 @@ data Vec3 = Vec3
   {-# UNPACK #-} !Float
   {-# UNPACK #-} !Float
   deriving (Eq, Ord, Show)
+#ifdef TH_LIFT
+  deriving Lift
+#endif
 
 {-# INLINE vec3 #-}
 vec3 :: Float -> Float -> Float -> Vec3
@@ -373,6 +386,9 @@ newtype Packed = Packed { unPacked :: Vec3 }
     , MonoFunctor, MonoPointed
     , Elementwise
     )
+#ifdef TH_LIFT
+  deriving Lift
+#endif
 
 {-# INLINE packed #-}
 packed :: Float -> Float -> Float -> Packed

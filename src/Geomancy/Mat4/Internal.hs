@@ -1,9 +1,14 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnboxedTuples #-}
+
+#ifdef TH_LIFT
+{-# LANGUAGE TemplateHaskell #-}
+#endif
 
 -- | General matrix storage and operations.
 
@@ -27,6 +32,10 @@ module Geomancy.Mat4.Internal
 
 import Prelude hiding (zipWith)
 import GHC.Exts hiding (VecCount(..), toList)
+
+#ifdef TH_LIFT
+import Language.Haskell.TH.Syntax (Lift(..))
+#endif
 
 import Control.DeepSeq (NFData(rnf))
 import Foreign (Storable(..))
@@ -118,6 +127,35 @@ withMemory (Mat4 arr) f =
     (F# (indexFloatArray# arr 0xD#))
     (F# (indexFloatArray# arr 0xE#))
     (F# (indexFloatArray# arr 0xF#))
+
+#ifdef TH_LIFT
+instance Lift Mat4 where
+  lift m = withMemory m
+    \ e0 e1 e2 e3
+      e4 e5 e6 e7
+      e8 e9 eA eB
+      eC eD eE eF ->
+      [|
+        fromMemory
+          $(lift e0) $(lift e1) $(lift e2) $(lift e3)
+          $(lift e4) $(lift e5) $(lift e6) $(lift e7)
+          $(lift e8) $(lift e9) $(lift eA) $(lift eB)
+          $(lift eC) $(lift eD) $(lift eE) $(lift eF)
+      |]
+  liftTyped m = withMemory m
+    \ e0 e1 e2 e3
+      e4 e5 e6 e7
+      e8 e9 eA eB
+      eC eD eE eF ->
+      [||
+        fromMemory
+          $$(liftTyped e0) $$(liftTyped e1) $$(liftTyped e2) $$(liftTyped e3)
+          $$(liftTyped e4) $$(liftTyped e5) $$(liftTyped e6) $$(liftTyped e7)
+          $$(liftTyped e8) $$(liftTyped e9) $$(liftTyped eA) $$(liftTyped eB)
+          $$(liftTyped eC) $$(liftTyped eD) $$(liftTyped eE) $$(liftTyped eF)
+      ||]
+#endif
+
 
 {- | @I@, the identity matrix.
 

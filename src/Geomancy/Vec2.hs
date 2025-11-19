@@ -1,10 +1,16 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
+
+#ifdef TH_LIFT
+{-# LANGUAGE DeriveLift #-}
+{-# LANGUAGE DerivingStrategies #-}
+#endif
 
 -- | Specialized and inlined @V2 Float@.
 
@@ -31,6 +37,10 @@ import Data.VectorSpace (VectorSpace)
 import Foreign (Storable(..))
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import qualified Data.VectorSpace as VectorSpace
+
+#ifdef TH_LIFT
+import Language.Haskell.TH.Syntax (Lift)
+#endif
 
 import Geomancy.Elementwise (Elementwise(..))
 import Graphics.Gl.Block (Block(..))

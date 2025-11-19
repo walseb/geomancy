@@ -1,5 +1,5 @@
 name:       geomancy
-version:    0.3.0.0
+version:    0.3.0.1
 git:        "https://gitlab.com/dpwiz/geomancy"
 license:    BSD3
 author:     "IC Rainbow"
@@ -16,6 +16,11 @@ category: Graphics
 description: |
   Sometimes it is unavoidable you have to do stuff on CPU.
   Let's at least do it faster.
+
+flags:
+  th-lift:
+    manual: true
+    default: true
 
 dependencies:
 - base >= 4.7 && < 5
@@ -34,6 +39,11 @@ library:
   - mono-traversable
   - ptrdiff
   - webcolor-labels
+  when:
+  - condition: flag(th-lift)
+    dependencies:
+    - template-haskell
+    cpp-options: -DTH_LIFT
 
 tests:
   geomancy-test:
