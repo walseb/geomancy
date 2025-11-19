@@ -1,9 +1,8 @@
-resolver: https://gitlab.com/keid/meta/-/raw/main/resolvers/keid-engine-2025-05-10.yaml
+resolver: https://gitlab.com/keid/meta/-/raw/main/resolvers/keid-engine-2025-11-10.yaml
 
 packages:
 - .
 
-extra-deps:
-- webcolor-labels-0.1.0.0
+# extra-deps:
 
 system-ghc: true
