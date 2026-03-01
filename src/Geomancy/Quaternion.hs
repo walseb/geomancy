@@ -1,6 +1,12 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeFamilies #-}
+
+#ifdef TH_LIFT
+{-# LANGUAGE DeriveLift #-}
+{-# LANGUAGE DerivingStrategies #-}
+#endif
 
 -- | Specialized and inlined @Quaternion Float@.
 
@@ -33,6 +39,10 @@ import Control.DeepSeq (NFData(rnf))
 import Foreign (Storable(..), castPtr)
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 
+#ifdef TH_LIFT
+import Language.Haskell.TH.Syntax (Lift)
+#endif
+
 import Graphics.Gl.Block (Block(..))
 import Geomancy.Vec3 (Vec3, vec3, withVec3)
 
@@ -44,6 +54,9 @@ data Quaternion = Quaternion
   {-# UNPACK #-} !Float
   {-# UNPACK #-} !Float
   deriving (Eq, Ord, Show)
+#ifdef TH_LIFT
+  deriving Lift
+#endif
 
 {-# INLINE quaternion #-}
 quaternion :: Float -> Float -> Float -> Float -> Quaternion

@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -13,6 +14,10 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 {-# LANGUAGE ViewPatterns #-}
+
+#ifdef TH_LIFT
+{-# LANGUAGE TemplateHaskell #-}
+#endif
 
 -- | Specialized and inlined @V4 Float@.
 
@@ -49,6 +54,10 @@ import GHC.IO (IO(..))
 import GHC.OverloadedLabels (IsLabel(..))
 import Text.Printf (printf)
 import WebColor.Labels (IsWebColorAlpha(..))
+
+#ifdef TH_LIFT
+import Language.Haskell.TH.Syntax (Lift(..))
+#endif
 
 import Geomancy.Elementwise (Elementwise(..))
 import Graphics.Gl.Block (Block(..))
@@ -154,6 +163,12 @@ instance IsWebColorAlpha s => IsLabel s Vec4 where
 
 instance NFData Vec4 where
   rnf Vec4{} = ()
+
+#ifdef TH_LIFT
+instance Lift Vec4 where
+  lift (WithVec4 a b c d) = [| vec4 $(lift a) $(lift b) $(lift c) $(lift d) |]
+  liftTyped (WithVec4 a b c d) = [|| vec4 $$(liftTyped a) $$(liftTyped b) $$(liftTyped c) $$(liftTyped d) ||]
+#endif
 
 type instance Element Vec4 = Float
 

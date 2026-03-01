@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -12,6 +13,10 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
+
+#ifdef TH_LIFT
+{-# LANGUAGE DeriveLift #-}
+#endif
 
 module Geomancy.Point
   ( Point(..)
@@ -40,6 +45,10 @@ import GHC.Ix (Ix)
 import GHC.TypeNats (KnownNat)
 import qualified Data.AffineSpace as AffineSpace
 
+#ifdef TH_LIFT
+import Language.Haskell.TH.Syntax (Lift)
+#endif
+
 import Geomancy.Elementwise (Elementwise(..))
 import Graphics.Gl.Block (Block(..))
 import Geomancy.Vec2 (Vec2)
@@ -52,6 +61,9 @@ newtype Point v = Point v
   deriving (Generic)
   deriving stock (Eq, Ord, Show)
   deriving newtype (Ix, NFData, Num, Fractional, MonoFunctor, MonoPointed, Elementwise, Storable)
+#ifdef TH_LIFT
+  deriving Lift
+#endif
 
 deriving anyclass instance
   ( KnownNat (PackedSize v)

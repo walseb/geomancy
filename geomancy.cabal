@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           geomancy
-version:        0.3.0.0
+version:        0.3.0.1
 synopsis:       Vectors and matrix manipulation
 description:    Sometimes it is unavoidable you have to do stuff on CPU.
                 Let's at least do it faster.
@@ -23,6 +23,10 @@ extra-source-files:
 source-repository head
   type: git
   location: https://gitlab.com/dpwiz/geomancy
+
+flag th-lift
+  manual: True
+  default: True
 
 library
   exposed-modules:
@@ -67,6 +71,10 @@ library
     , simple-affine-space
     , webcolor-labels
   default-language: Haskell2010
+  if flag(th-lift)
+    cpp-options: -DTH_LIFT
+    build-depends:
+        template-haskell
 
 test-suite geomancy-test
   type: exitcode-stdio-1.0

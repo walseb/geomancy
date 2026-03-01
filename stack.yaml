@@ -5,4 +5,8 @@ packages:
 
 # extra-deps:
 
+flags:
+  geomancy:
+    th-lift: true
+
 system-ghc: true

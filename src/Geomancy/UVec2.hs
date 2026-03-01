@@ -1,9 +1,15 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
+
+#ifdef TH_LIFT
+{-# LANGUAGE DeriveLift #-}
+{-# LANGUAGE DerivingStrategies #-}
+#endif
 
 -- | Specialized and inlined @V2 Word32@.
 
@@ -25,6 +31,10 @@ import Foreign (Storable(..))
 import Foreign.Ptr.Diff (peekDiffOff, pokeDiffOff)
 import GHC.Ix (Ix(..))
 
+#ifdef TH_LIFT
+import Language.Haskell.TH.Syntax (Lift)
+#endif
+
 import Geomancy.Elementwise (Elementwise(..))
 import Graphics.Gl.Block (Block(..))
 
@@ -32,6 +42,9 @@ data UVec2 = UVec2
   {-# UNPACK #-} !Word32
   {-# UNPACK #-} !Word32
   deriving (Eq, Ord, Show)
+#ifdef TH_LIFT
+  deriving Lift
+#endif
 
 {-# INLINE uvec2 #-}
 uvec2 :: Word32 -> Word32 -> UVec2

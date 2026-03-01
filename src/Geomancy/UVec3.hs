@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -9,6 +10,11 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
+
+#ifdef TH_LIFT
+{-# LANGUAGE DeriveLift #-}
+{-# LANGUAGE DerivingStrategies #-}
+#endif
 
 -- | Specialized and inlined @V2 Word32@.
 
@@ -35,6 +41,10 @@ import GHC.Ix (Ix(..))
 import GHC.OverloadedLabels (IsLabel(..))
 import WebColor.Labels (IsWebColor(..))
 
+#ifdef TH_LIFT
+import Language.Haskell.TH.Syntax (Lift)
+#endif
+
 import Geomancy.Elementwise (Elementwise(..))
 import Graphics.Gl.Block (Block(..))
 
@@ -43,6 +53,9 @@ data UVec3 = UVec3
   {-# UNPACK #-} !Word32
   {-# UNPACK #-} !Word32
   deriving (Eq, Ord, Show)
+#ifdef TH_LIFT
+  deriving Lift
+#endif
 
 {-# INLINE uvec3 #-}
 uvec3 :: Word32 -> Word32 -> Word32 -> UVec3
