@@ -50,6 +50,9 @@ data Vec2 = Vec2
   {-# UNPACK #-} !Float
   {-# UNPACK #-} !Float
   deriving (Eq, Ord, Show)
+#ifdef TH_LIFT
+  deriving Lift
+#endif
 
 {-# INLINE vec2 #-}
 vec2 :: Float -> Float -> Vec2
