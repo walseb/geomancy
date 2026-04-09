@@ -13,7 +13,7 @@
 -- | General matrix storage and operations.
 
 module Geomancy.Mat4
-  ( Mat4
+  ( Mat4(..)
     -- * Operations
   , identity
   , transpose
